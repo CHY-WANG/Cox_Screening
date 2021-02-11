@@ -1,0 +1,698 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[ruled,vlined, linesnumbered]{algorithm2e}
+\usepackage[english]{babel}
+\usepackage[nottoc]{tocbibind}
+\usepackage{color}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{hyperref}
+\usepackage{cleveref}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{todo}{To Do}
+\bibliographystyle{abbrvnat}
+% Custom commands / shortcuts
+\providecommand{\sign}{\textrm{sign}}
+\providecommand{\note}[1]{\textcolor{red}{#1}}
+\providecommand{\lam}{\lambda}
+
+\title{Cox Screening}
+\date{}
+
+
+\begin{document}
+
+\maketitle
+\note{
+$X=[\tilde{x}_1,\tilde{x}_2,...,\tilde{x}_n]^T=[x_1,x_2,...,x_p]$ is the $n\times p$ feature matrix. $\beta$ is the $p\times 1$ coefficients vector.$\Delta=[\Delta_1,\Delta_2,...,\Delta_f]^T=\delta_{ki}\in\{0,1\}^{f\times n}$ is the at-risk matrix, where $f$ is the number of unique failure time and $\delta_{ki}=1$ if subject $i$ is at risk at time $k$. $Y$ is the $f\times n$ response matrix where $Y_{ki}=1$ if subject $i$ died at time $k$ and $Y_{ki}=0$ otherwise. $d=Y\mathbf{1}$ is the $f\times 1$ number of deaths vector, where $d_k>0$ is the number of deaths occurring at time $k$. $b=Y^T\mathbf{1}$ is the $n\times1$ vector of death indicator, where $b_i=1$ if death occurred on subject $i$ and $b_i=0$ if censor occurred. Using Breslow approximation for tied survival times, the cox model with lasso penalty can be defined as:
+\begin{equation}
+    \label{eq:cox}
+    \underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{\tilde{x}_i^T\beta}\right)+n\lambda||\beta||_1.
+\end{equation}
+}
+
+Introducing a new variable \note{$Z\equiv\mathbf{1}\beta^TX^T\in\mathbb{R}^{f\times n}$}, which means $z_{ki}\equiv\tilde{x}_i^T\beta,\,\forall k$, then the model becomes:
+
+\begin{equation}
+    \label{eq:dual+z}
+    \begin{gathered}
+    \underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1\\s.t.\quad Z=\mathbf{1}\beta^TX^T.
+\end{gathered}
+\end{equation}
+
+\note{Let $\langle\cdot,\cdot\rangle$ denote the matrix element-wise inner product, where $\langle A,B \rangle\equiv\sum_{k=1}^f\sum_{i=1}^nA_{ki}B_{ki}$.}
+
+Introducing the dual variable $U\in\mathbb{R}^{f\times n}$, the dual problem becomes:
+
+\begin{gather}
+    \label{eq:dual+u}
+    \begin{aligned}
+        &\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\langle U,\mathbf{1}\beta^TX^T-Z\rangle\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\langle U,\mathbf{1}\beta^TX^T\rangle-\langle U,Z\rangle\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\mathbf{1}^TUX\beta-\langle U,Z\rangle
+    \end{aligned}    
+\end{gather}
+
+
+Minimizing with respect to $\beta$, the partial derivative is:
+
+\begin{equation}
+    \label{eq:partialbeta}
+    \frac{\partial}{\partial\beta}(\cdot) =-X^Tb+X^TU^T\mathbf{1}+n\lambda\partial||\beta||_1
+\end{equation}
+
+so the minimum is obtained iff $
+    ||X^TU^T\mathbf{1}-X^Tb||_\infty\leq n\lambda,$ and the problem becomes:
+
+\begin{gather}
+    \label{eq:dual-beta}
+    \begin{aligned}
+        &\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}-\textrm{Tr} \langle U,Z\rangle+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}-\sum_{k=1}^f u_k^Tz_k +\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\sum_{k=1}^f\underset{z_k\in \mathbb{R}^n}{\mathrm{min}}-u_k^Tz_k+d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
+        &s.t.\quad ||X^TU^T\mathbf{1}-X^Tb||_\infty\leq n\lambda.
+    \end{aligned}
+\end{gather}
+
+Take derivative with respect to $z_{ki}$:
+
+\begin{equation}
+    \label{eq:partialz}
+    \frac{\partial}{\partial z_{ki}}(\cdot)=-u_{ki}+\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}},
+\end{equation}
+
+and the minimum is obtained when \note{$u_{ki}=\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}}$}, which can be obtained iff:
+
+\begin{gather}
+    \label{eq:constu1}
+    \begin{aligned}
+    &u_{ki} > 0\textrm{ if }\delta_{ki}=1,\,\forall k,i\\
+    &u_{ki}=0\textrm{ if }\delta_{ki}=0,\,\forall k,i\\
+    &\sum_{i=1}^n u_{ki}=d_k,\,\forall k
+\end{aligned}
+\end{gather}
+
+or
+
+\begin{gather}
+    \label{eq:constu2}
+    \begin{aligned}
+    &U+(1-\Delta)>0\\
+    &U\circ(1-\Delta)=0\\
+    &U\mathbf{1}=d
+\end{aligned}
+\end{gather}
+
+where $>$ is hold element-wise and $\circ$ is element-wise product. The problem becomes
+
+\begin{gather}
+    \label{eq:dualu}
+    \begin{aligned}
+        &\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}-\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}u_{ki}\log\left(\frac{u_{ki}\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}}{d_k}\right)+\sum_{k=1}^fd_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}-\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log u_{ki}-\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log\left(\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}\right)+\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log d_k+\sum_{k=1}^fd_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}-\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log\frac{u_{ki}}{d_k}\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{min}}\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}u_{ki}\log\frac{u_{ki}}{d_k}\\
+        &s.t.\quad ||X^TU^T\mathbf{1}-X^Tb||_\infty\leq n\lambda,\quad U+(1-\Delta)>0,\quad U\circ(1-\Delta)=0,\quad U\mathbf{1}=d.
+    \end{aligned}
+\end{gather}
+
+Let \note{$d^{1/2}=\{d_k^{1/2}\}_{k=1}^f$ and $D^{1/2}=diag(d^{1/2})$}. Note that \begin{itemize}
+    \item $X^T(U^T-Y^T)D^{-1/2}d^{1/2}=X^T(U^T-Y^T)\mathbf{1}=X^TU^T\mathbf{1}-X^TY^T\mathbf{1}=X^TU^T\mathbf{1}-X^Tb$,
+    \item $D^{1/2}D^{-1/2}(U-Y)+Y+(1-\Delta)=U+(1-\Delta)$,
+    \item $\left(D^{-1/2}(U-Y)\right)\circ(1-\Delta)=D^{-1/2}\left((U-Y)\circ(1-\Delta)\right)=D^{-1/2}\left(U\circ(1-\Delta)\right)=0$ iff $U\circ(1-\Delta)=0$,
+    \item $D^{-1/2}(U-Y)\mathbf{1}=D^{-1/2}(U\mathbf{1}-Y\mathbf{1})=D^{-1/2}(U\mathbf{1}-d)=0$ iff $U\mathbf{1}-d=0$.
+\end{itemize}
+
+Letting \note{$\Theta=D^{-1/2}(U-Y)$}, then the problem can be expressed as:
+
+\note{
+\begin{gather}
+        \label{eq:dualTheta}
+        \underset{\Theta\in \mathbb{R}^{f\times n}}{\mathrm{min}}g(\Theta)\equiv\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}(y_{ki}+d_k^{1/2}\Theta_{ki})\log\left(\frac{y_{ki}}{d_k}+\frac{\Theta_{ki}}{d_k^{1/2}}\right)\\
+        \begin{aligned}s.t.\quad \Theta\in \mathcal{F}_\lambda=\{\Theta:\quad
+            &||X^T\Theta^Td^{1/2}||_\infty\leq n\lambda,\quad D^{1/2}\Theta+Y+(1-\Delta)> 0,\\& \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0\}\nonumber.
+        \end{aligned}
+\end{gather}
+}
+\begin{todo}
+    Show 
+    
+    \begin{equation}
+        \label{eq:kkt}
+        \left|x_j^T\Theta_\lambda^Td^{1/2}\right|<n\lambda\implies\beta_{\lambda,j}=0
+    \end{equation}
+\end{todo}
+
+$[\nabla g(\Theta)]_{ki}=\delta_{ki}d_k^{1/2}\log\left(\frac{y_{ki}}{d_k}+\frac{\Theta_{ki}}{d_k^{1/2}}\right)+d_k^{1/2}$. \note{$[\nabla^2 g(\Theta)]_{ki,ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta_{ki}}$ and $\nabla^2 g(\Theta)$ is a diagonal matrix. For convenience, we will instead use $[\nabla^2 g(\Theta)]$ to denote the $f\times n$ matrix where $[\nabla^2 g(\Theta)]_{ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta_{ki}}$.} Because $d_k^{1/2}\Theta_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta)]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex.
+
+Note that $\forall\Theta,\Theta'\in\mathcal{F}_\lambda$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so $||\Theta-\Theta'||_2^2=\sum_{k=1}^f\sum_{i=1}^n(\Theta_{ki}-\Theta'_{ki})^2=\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}(\Theta_{ki}-\Theta'_{ki})^2\leq \nabla^2 g(\Theta)\circ(\Theta'-\Theta)^{\circ 2}$. In $\mathcal{F}_\lambda$, $g(\Theta)$ is actually strongly convex with modulus $1$.
+
+
+\note{
+\begin{lemma}
+    \label{lem:1}
+    Let $\lambda>0$, $\Theta,\Theta'\in\mathcal{F}_\lambda$, then
+    \begin{equation}
+        \label{eq:expand}
+        g(\Theta')-g(\Theta)-\langle\nabla g(\Theta),\Theta'-\Theta\rangle=\frac{1}{2}\langle\nabla^2 g(\Theta''),(\Theta'-\Theta)^{\circ 2}\rangle%\geq \frac{1}{2}||\Theta'-\Theta||_2^2,
+    \end{equation},
+    for some $\Theta''$ on the line segment between $\Theta'$ and $\Theta$, denoted as $\Theta''\in[\Theta',\Theta]$.
+\end{lemma}
+Note $\Theta''\in[\Theta',\Theta]$ implies that $\Theta''\in\mathcal{F}_\lambda$ because $\mathcal{F}_\lambda$ is convex.\\
+Let $\Theta_\lambda$ denote the the optimal solution of $\Theta$ to \eqref{eq:dualTheta} for a given $\lambda$.
+}
+
+
+\begin{todo}
+    Find $\lambda_{max}$ and $\Theta_{\lambda_{max}}$.
+\end{todo}
+
+\note{
+\begin{theorem}
+    \label{thm:1}
+    Let $\lambda_{max}\geq\lambda_0>\lambda>0$, then
+    \begin{equation}
+        \langle\nabla^2 g(\Theta''),(\Theta_\lambda-\Theta_{\lambda_0})^{\circ 2}\rangle\leq r^2(\lambda,\lambda_0)\equiv 2\left(g\left(\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}\right)-g(\Theta_{\lambda_0})+\left(1-\frac{\lambda}{\lambda_0}\right)\langle\nabla g(\Theta_{\lambda_0}),\Theta_{\lambda_0}\rangle\right),
+    \end{equation}
+    for some $\Theta''$ on the line segment between $\Theta_\lambda$ and $\Theta_{\lambda_0}$, denoted as $\Theta''\in[\Theta_\lambda,\Theta_{\lambda_0}]$.
+\end{theorem}
+}
+
+\begin{proof}
+It is easy to see that $\mathcal{F}_\lambda\subseteq\mathcal{F}_{\lambda_0}$. Therefore $\Theta_\lambda,\Theta_{\lambda_0}\in \mathcal{F}_{\lambda_0}$. By Lemma ~\ref{lem:1}:
+
+\begin{equation}
+    \label{eq:thm1.1}
+    \langle\nabla^2 g(\Theta''),(\Theta_\lambda-\Theta_{\lambda_0})^{\circ 2}\rangle=2\left(g(\Theta_{\lambda})-g(\Theta_{\lambda_0})+\langle\nabla g(\Theta_{\lambda_0}),(\Theta_{\lambda_0}-\Theta_\lambda)\rangle\right),
+\end{equation}
+
+ for some $\Theta''\in[\Theta_\lambda,\Theta_{\lambda_0}]$. It can be shown that $\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}\in\mathcal{F}_\lambda$ because
+
+\begin{itemize}
+    \item $||X^T\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}^Td^{1/2}||_\infty=\frac{\lambda}{\lambda_0}||X^T\Theta_{\lambda_0}^Td^{1/2}||_\infty\leq \frac{\lambda}{\lambda_0}n\lambda_0=n\lambda$.
+    \item Each element in the inequality $D^{1/2}\Theta+Y+(1-\Delta)> 0$ is $d_k^{1/2}\Theta_{ki}+Y_{ki}+(1-\delta_{ki})>0$. Also, $Y_{ki}+(1-\delta_{ki})\geq 0$. If $\Theta_{ki}>0$, $d_k^{1/2}\frac{\lambda}{\lambda_0}\Theta_{ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}\frac{\lambda}{\lambda_0}\Theta_{ki}>0.$ If $\Theta_{ki}\leq0$, $d_k^{1/2}\frac{\lambda}{\lambda_0}\Theta_{ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}\Theta_{ki}+Y_{ki}+(1-\delta_{ki})>0.$
+    \item Other constraints obviously hold.
+\end{itemize}
+
+Thus 
+
+\begin{equation}
+    \label{eq:thm1.2}
+    g(\Theta_\lambda)=\underset{\Theta\in \mathcal{F}_\lambda}{\mathrm{min}}g(\Theta)\leq g\left(\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}\right).
+\end{equation}
+
+On the other hand, the Slater's condition and thus the KKT condition for problem \eqref{eq:dualTheta} holds at $\lambda_0$:
+
+\begin{equation}
+    \label{eq:thm1.3}
+    0=[\nabla g(\Theta_{\lambda_0})]_{ki}+\sum_{j=1}^p\eta^+_jX_{ij}d_k^{1/2}+\sum_{j=1}^p\eta^-_j(-X_{ij}d_k^{1/2})-\mu_{ki}d_k^{1/2}+\nu_{ki}(1-\delta_{ki})+\zeta_k,
+\end{equation}
+    
+$\forall i,k$, where $\eta^+,\eta^-\in\mathbb{R}^p_+,\{\mu\}_{k,i}\in\mathbb{R}^{f\times n}_+,\{\nu\}_{k,i}\in\mathbb{R}^{f\times n},\zeta\in\mathbb{R}^f$ are vectors depending on $\lambda_0$. Because $\{D^{1/2}\Theta+Y+(1-\Delta)>0\}$ is an open set and $\Theta_{\lambda_0}$ must be an interior point of it, by complementary slackness, $\mu_{ki}=0,\forall k,i$. Therefore, \eqref{eq:thm1.3} becomes $\forall i,k$:
+
+\begin{equation}
+    \label{eq:thm1.4}
+    0=[\nabla g(\Theta_{\lambda_0})]_{ki}+\sum_{j=1}^p\eta^+_jX_{ij}d_k^{1/2}+\sum_{j=1}^p\eta^-_j(-X_{ij}d_k^{1/2})+\nu_{ki}(1-\delta_{ki})+\zeta_k.
+\end{equation}
+
+By complementary slackness again, $\eta^+_j>0$ only if $x_j^T\Theta_\lambda^Td^{1/2}=\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda,ki}d_k^{1/2}=n\lambda$ and $\eta^-_j>0$ only if $-x_j^T\Theta_\lambda^Td^{1/2}=\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\Theta_{\lambda,ki}d_k^{1/2})=n\lambda$. $\eta^+_j=\eta^-_j=0$ otherwise. Therefore:
+
+\begin{gather}
+    \label{eq:thm1.5}
+    \begin{aligned}
+        -\langle\nabla g(\Theta_{\lambda_0}),\Theta_{\lambda_0}\rangle&=\sum_{i=1}^n\sum_{k=1}^f-[\nabla g(\Theta_{\lambda_0})]_{ki}\Theta_{\lambda_0,ki}\\
+        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda_0,ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\Theta_{\lambda_0,ki}d_k^{1/2})\\&\quad+\sum_{i=1}^n\sum_{k=1}^f\nu_{ki}(1-\delta_{ki})\Theta_{\lambda_0,ki}+\sum_{k=1}^f\zeta_{k}\sum_{i=1}^n\Theta_{\lambda_0,ki}\\
+        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda_0,ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\Theta_{\lambda_0,ki}d_k^{1/2})\\
+        &=\sum_{j:x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}n\lambda_0\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}n\lambda_0\eta_j^-\\
+        &=n\lambda_0\left(\sum_{j:x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}\eta_j^-\right),
+    \end{aligned}
+\end{gather}
+
+where the third equation holds because $\Theta_{\lambda_0}\in\mathcal{F}_{\lambda_0}$.
+
+Because $\Theta_\lambda\in \mathcal{F}_{\lambda}$, $\left|x_j^T\Theta_\lambda^Td^{1/2}\right|=\left|\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda,ki}d_k^{1/2}\right|\leq n\lambda$. Similarly:
+
+\begin{gather}
+    \label{eq:thm1.6}
+    \begin{aligned}
+        -\langle\nabla g(\Theta_{\lambda_0}),\Theta_{\lambda}\rangle
+        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda,ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\Theta_{\lambda,ki}d_k^{1/2})\\
+        &\leq\sum_{j:x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}n\lambda\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}n\lambda\eta_j^-\\
+        &=n\lambda\left(\sum_{j:x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_0}^Td^{1/2}=\lambda_0}\eta_j^-\right)\\
+        &=\frac{\lambda}{\lambda_0}(-\langle\nabla g(\Theta_{\lambda_0}),\Theta_{\lambda_0}\rangle).
+    \end{aligned}
+\end{gather}
+
+Combining \eqref{eq:thm1.1}, \eqref{eq:thm1.2}, \eqref{eq:thm1.5} and \eqref{eq:thm1.6}, we have Theorem~\ref{thm:1} holds and end the proof.
+\end{proof}
+
+\hspace{0 in}
+
+Theorem~\ref{thm:1} states that $\Theta_\lambda$ is bounded in a ellipsoid in the subspace $\{\Theta\circ(1-\Delta)=0,\, \Theta\mathbf{1}=0\}$ centered at $\Theta_{\lambda_0}$ with size proportional to $r(\lambda,\lambda_0)$. The size $r(\lambda,\lambda_0)$ can be easily calculated only requiring the knowledge of $\Theta_{\lambda_0}$, not requiring any knowledge about $\Theta_{\lambda}$. The shape depends on $\Theta''\in[\Theta_\lambda,\Theta_{\lambda_0}]$.
+
+\begin{lemma}
+    Let $\mathcal{I}_\lambda$ denote the active set $\{j:\left|x_j^T\Theta_\lambda^Td^{1/2}\right|=n\lambda\}$.
+    
+    \begin{enumerate}
+        \item $\mathcal{I}_\lambda$ is not empty if $0<\lambda\leq \lambda_{max}$.
+    \end{enumerate}
+\end{lemma}
+
+ We can pick a $j_0\in \mathcal{I}_{\lambda_{max}}$. Then for $\forall\lambda_0\leq\lambda_{max}$ it follows that $j_0\in\mathcal{I}_{\lambda_0}$. We set
+ 
+ \begin{equation}
+     x_*=sign\left(x_{j_0}^T\Theta_{\lambda_{max}}^Td^{1/2}\right)x_{j_0}.
+ \end{equation}
+ 
+ 
+ Given the optimal solution $\Theta_{\lambda_0}$, we have $x_*^T\Theta_{\lambda_0}^Td^{1/2}=n\lambda_0$. $\forall \lambda<\lambda_0$, because $\Theta_\lambda\in\mathcal{F}_\lambda$, we have $x_*^T\Theta_{\lambda}^Td^{1/2}\leq n\lambda$. \note{Combined with Theorem~\ref{thm:1}, given $\Theta_{\lambda_0}$, $\Theta_\lambda$ is contained in the following set:
+ \begin{equation}
+    \label{eq:boundset}
+     \mathcal{A}(\lambda,{\lambda_0},\Theta'')\equiv\{\Theta:\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle\leq r^2(\lambda,\lambda_0),\,\Theta\circ(1-\Delta)=0,\, \Theta\mathbf{1}=0,\, x_*^T\Theta_{\lambda}^Td^{1/2}\leq n\lambda\}.
+ \end{equation}
+ Therefore, $\left|x_j\Theta_\lambda^T d^{1/2}\right|$ will be less than or equal to
+ \begin{equation}  
+    \label{eq:t}
+     T_j(\lambda,\lambda_0;\Theta_{\lambda_0})\equiv\max_{\Theta''\in[\Theta_\lambda,\Theta_{\lambda_0}]}T^*_j(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta''),
+ \end{equation}
+ where
+ \begin{equation}
+    \label{eq:t*}
+     T^*_j(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda,{\lambda_0},\Theta'')} \left|x_j^T\Theta^T d^{1/2}\right|.
+ \end{equation}
+ Together with KKT conditions \eqref{eq:kkt}, if $T(\lambda,\lambda_0, x_j;\Theta_{\lambda_0})<n\lambda$, we can conclude $\beta_{\lambda,j}=0$ and $x_j$ can be safely discarded for optimizing penalized cox model \eqref{eq:cox}.
+ The problem \eqref{eq:t*} can be divided into two sub-problems:
+\begin{equation}
+    T^*_j(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')=\max_{\xi\in\{-1,1\}} T^*_{\xi, j}(\lambda,\lambda_0,;\Theta_{\lambda_0},\Theta''),
+\end{equation}
+where
+\begin{equation}
+    T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda,{\lambda_0},\Theta'')} \xi x_j^T\Theta^T d^{1/2}.
+\end{equation}
+For the convenience of the standard Lagrangian multiplier method, this is equivalent to the minimization problem:
+\begin{equation}
+    \label{eq:bounddual}
+    -T_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')=\min_{\Theta\in\mathcal{A}(\lambda,{\lambda_0},\Theta'')} -\xi x_j^T\Theta d^{1/2}.
+\end{equation}
+}
+
+\begin{lemma}
+    Let $\lambda_{max}\geq\lambda_0>\lambda>0$ and $\Theta_{\lambda_0}$ is known. The strong duality holds for \eqref{eq:bounddual} and an optimal solution is admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
+\end{lemma}
+
+\begin{todo}
+    Prove Lemma 3.
+\end{todo}
+
+\note{
+\begin{lemma}
+    Denote
+    \begin{equation}
+        \label{eq:uset}
+        \mathcal{U}_1\equiv\{u_1>0,u_2\geq0\}\quad and \quad \mathcal{U}_2\equiv\{u_1=0,u_2=\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}\}
+    \end{equation}
+    and 
+    \begin{equation}
+        \label{eq:w}
+        W_{ki}\equiv\delta_{ki}\frac{Y_{ki}+d_k^{1/2}\Theta_{ki}''}{d_k},
+    \end{equation}
+    with $W$ being the $f\times n$ matrix of $W_{ki}$ and $W_k$ being the $k$-th row of $W$.\\
+    $-T_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ in \eqref{eq:bounddual} is equal to:
+    \begin{enumerate}
+        \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}<1$, 
+        \begin{equation}
+            \label{eq:gbar}
+            \max_{\mathcal{U}_1}\bar{g}(u_1,u_2)\equiv-\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+u_2n(\lambda_0-\lambda)-\frac{1}{2}u_1r^2-\frac{1}{2u_1}\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(-\xi X_{ij}+u_2X_{i*}-W_k^T(-\xi x_j+u_2x_*)\right)^2
+        \end{equation}
+        \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}=1$,
+        \begin{equation}
+            \max\left\{\max_{\mathcal{U}_1}\bar{g}(u_1,u_2),-\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}n\lambda\right\}
+        \end{equation}
+    \end{enumerate}
+\end{lemma}
+}
+
+\begin{proof}
+The Lagrangian of \eqref{eq:bounddual} is:
+
+\begin{gather}
+    \label{eq:lem4.1}
+    \begin{aligned}
+        L(\Theta,u_1,u_2,V_1,v_2)=&-\xi x_j^T\Theta^T d^{1/2}+\frac{u_1}{2}\left(\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle-r^2\right)+u_2\left(x_*^T\Theta^Td^{1/2}-n\lambda\right)\\
+        &+\langle V_1,\Theta\circ(1-\Delta)\rangle+v_2^T\Theta\mathbf{1}\\
+        =&\left\langle\left(-\xi d^{1/2}x_j^T+u_2d^{1/2}x_*+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right),\Theta\right\rangle
+        \\
+        &+\frac{u_1}{2}\left(\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle-r^2\right)-u_2n\lambda
+    \end{aligned}
+\end{gather}
+
+where $u_1,u_2\geq 0$, $V_1\in\mathbb{R}^{f\times n},v_2\in\mathbb{R}^f$ are Lagrangian multipliers. Because of strong duality of \eqref{eq:bounddual}, $-T_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ is equal to the maximization of $\eqref{eq:lem4.1}$. Take derivative with respect to $\Theta$ and set to 0:
+
+\begin{equation}
+    \label{eq:lem4.2}
+    \nabla_\Theta L(\Theta,u_1,u_2,V_1,v_2)=-\xi d^{1/2}x_j^T+u_1\nabla^2g(\Theta'')\circ(\Theta-\Theta_{\lambda_0})+u_2d^{1/2}x_*^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T=0.
+\end{equation}
+
+\begin{enumerate}
+    \item When $u_1\neq 0$, because $\Theta_{ki},\Theta_{\lambda_0,ki}\neq0\implies W_{ki}[\nabla^2g(\Theta'')]_{ki}=\delta_{ki}=1$ we have:
+
+\begin{equation}
+    \label{eq:lem4.3}
+    \Theta=\Theta_{\lambda_0}-\frac{1}{u_1}W\circ\left(-\xi d^{1/2}x_j^T+u_2d^{1/2}x_*^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right).
+\end{equation}
+
+Combining \eqref{eq:lem4.1},\eqref{eq:lem4.3} and the fact that $\Theta_{\lambda_0}\in\mathcal{F}_{\lambda_0}$ and $x_*^T\Theta_{\lambda_0}^Td^{1/2}=n\lambda_0$, the dual function $\bar{g}(u_1,u_2,V_1,v2)=\min_\Theta L(\Theta,u_1,u_2,V_1,v_2)$ is:
+
+\begin{equation}
+    \label{eq:lem4.4}
+    \tilde{g}(u_1,u_2,V_1,v2)=-\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}-\frac{1}{2u_1}\left\langle W,\left( d^{1/2}(-\xi x_j^T+u_2x_*^T)+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)^{\circ2}\right\rangle+u_2n(\lambda_0-\lambda)-\frac{1}{2}u_1r^2.
+\end{equation}
+
+The dual problem is to maximize the dual function under $u_1>0,u_2\geq 0$. It is unconstrained with respect to $V_1,v_2$. Take derivative with respect to $V_1,v_2$ and set to 0:
+
+\begin{equation}
+    \label{eq:lem4.5}
+    \begin{cases}
+    \frac{\partial}{\partial V_1}=-\frac{1}{u_1}W\circ(1-\Delta)\circ\left( d^{1/2}(-\xi x_j^T+u_2x_*^T)+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)=0,\\
+    \frac{\partial}{\partial v_2}=-\frac{1}{u_1}W\circ\left( d^{1/2}(-\xi x_j^T+u_2x_*^T)+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)\mathbf{1}=0.
+    \end{cases}
+\end{equation}
+
+The first equation is automatically satisfied because the constraint $\Theta\circ(1-\Delta)$ is used in \eqref{eq:lem4.3}. Note in \eqref{eq:lem4.4}, if $\delta_{ki}=1$, $[V_1\circ(1-\Delta)]_{ki}=0$ and if $\delta_{ki}=0$, $W_{ki}=0$, so $V_1\circ(1-\Delta)$ can be set to 0 without changing the value of $\tilde{g}(u_1,u_2,V_1,v_2)$.
+
+The second equation states that each row of the matrix $W\circ\left( d^{1/2}(-\xi x_j^T+u_2x_*^T)+v_2\mathbf{1}^T\right)$ sums to 0, or in other word, each row of $W\circ\left( d^{1/2}(-\xi x_j^T+u_2x_*^T)\right)$ is centered.
+
+Combining \eqref{eq:lem4.4} and \eqref{eq:lem4.5} the dual problem  becomes maximizing $\bar{g}(u_1,u_2)=\max_{V_1,v_2}g(u_1,u_2,V_1,v2)$ under constrains $u_1>0,u_2\geq0$. It is also easy to see that $\Theta''\in\mathcal{F}_{\lambda_0}\implies\sum_{i=1}^nW_{ki}=1,\forall k$, so we have
+
+\begin{equation}
+    \label{eq:lem4.6}
+    \bar{g}(u_1,u_2)=-\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+u_2n(\lambda_0-\lambda)-\frac{1}{2}u_1r^2-\frac{1}{2u_1}\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(-\xi X_{ij}+u_2X_{i*}-W_k^T(-\xi x_j+u_2x_*)\right)^2.
+\end{equation}
+
+
+\item When $u_1=0$, to solve \eqref{eq:lem4.2} we need to solve $d^{1/2}(-\xi x_j^T+u_2x_*)+V_1\circ(1-\Delta)+v_2\mathbf{1}^T=0.$ At the first unique failure time $k_0\in\{1,2,3,...,f\}$, all the subjects are at risk and $\delta_{k_0,i}=1,\forall i$. With out loss of generality, assume $k_0=1$. The first row of this equation becomes:
+
+\begin{equation}
+    d_1^{1/2}(-\xi x_j+u_2x_*) + v_{2,1}\mathbf{1}=0.
+\end{equation}
+
+Let $P_{\mathbf{1}}=I_n-\mathbf{1_n}\mathbf{1_n}^T$ be the projection onto the orthogonal complement of the space spanned by $\mathbf{1}$. Multiply both sides by $d^{-1/2}_1P_{\mathbf{1_n}}$ we have:
+
+\begin{equation}
+    \label{eq:lem4.7}
+     -\xi P_{\mathbf{1}}x_j+u_2P_{\mathbf{1}}x_*=0.
+\end{equation}
+
+Because $u_2\geq 0$, this means $\xi P_{\mathbf{1}}x_j$ and $P_{\mathbf{1}}x_*$ have correlation $1$ $\left(\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}=1\right)$.
+\begin{enumerate}
+    \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}<1$, this contradicts \eqref{eq:lem4.7} and thus $d^{1/2}(-\xi x_j^T+u_2x_*)+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\neq0.$
+    $\tilde{g}(0,u_2,V_1,v2)=\min_\Theta L(\Theta,0,u_2,V_1,v_2)=-\infty$ because $L(\Theta,0,u_2,V_1,v_2)$ is linear in $\Theta$ with nonzero coefficients.
+    \item Suppose $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}=1$. By \eqref{eq:lem4.7}, $u_2=u_2'=\frac{\langle P_\mathbf{1}x_*,\xi P_\mathbf{1}x_j\rangle}{||P_\mathbf{1}x_*||_2^2}=\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}$. If $u_2'$, $V_1'$ and $v_2'$ are solution to \eqref{eq:lem4.2}, plug them into \eqref{eq:lem4.1}:
+    
+    \begin{equation}
+        \tilde{g}\left(0,u_2=\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2},V_1',v_2'\right)=\min_\Theta L(\Theta,0,u_2',V_1',v_2')=-u_2n\lambda=-\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}n\lambda.
+    \end{equation}
+    
+    Similar to part (a), $\tilde{g}(0,u_2,V_1,v_2)=\infty$ otherwise.
+    
+\end{enumerate}
+\end{enumerate}
+
+End of proof.
+
+\end{proof}
+
+\note{
+\begin{lemma}
+    Let
+    \begin{equation}
+        \label{eq:prod}
+        \psi(x,x')\equiv\sum_{k=1}^f\frac{d_k}{4}\left|\max_{i:\delta_{ki}=1}x_i-\min_{i:\delta_{ki}=1}x_i\right|\left|\max_{i:\delta_{ki}=1}x'_i-\min_{i:\delta_{ki}=1}x'_i\right|
+    \end{equation}
+    $-T_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')\geq-\bar{T}_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0})\equiv$:
+    \begin{enumerate}
+        \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}<1$, 
+        \begin{equation}
+            \label{eq:gbbar}
+            \max_{\mathcal{U}_1}\bar{\bar{g}}(u_1,u_2)=-\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+u_2n(\lambda_0-\lambda)-\frac{1}{2}u_1r^2-\frac{1}{2u_1}\left[\psi(x_j,x_j)+2u_2\psi(-\xi x_j,x_*)+u_2^2\psi(x_*,x_*)\right]
+        \end{equation}
+        \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}=1$,
+        \begin{equation}
+            \max\left\{\max_{\mathcal{U}_1}\bar{\bar{g}}(u_1,u_2),-\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}n\lambda\right\}
+        \end{equation}
+    \end{enumerate}
+\end{lemma}
+}
+
+
+
+\begin{proof}
+    Let $V_{w}(x)\equiv\sum_{i=1}^nw_{i}\left(x_i-w^Tx\right)^2$ denote the weighted variance of $x$ with weights $w$.\\
+    In \eqref{eq:gbar}, we can see that each term $\sum_{i=1}^nW_{ki}\left(-\xi X_{ij}+u_2X_{i*}-W_k^T(-\xi x_j+u_2x_*)\right)^2=V_{W_k}(-\xi x_j+u_2x_*)$ is the weighted variance of $-\xi x_j+u_2x_*$ because $\Theta''\in\mathcal{F}_{\lambda_0}\implies\sum_{i=1}^nW_{ki}=1$. Expanding the variance and using Cauchy-Schwartz:
+    \begin{gather}
+    \label{eq:lem5.1}
+    \begin{aligned}
+        &V_{W_k}\left(-\xi X_{ij}+u_2X_{i*}\right)\\
+        =&V_{W_k}(x_j)+u_2^2V_{W_k}(x_*)-2u_2\xi\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)\left(X_{i*}-W_k^Tx_*\right)\\
+        \leq &V_{W_k}(x_j)+u_2^2V_{W_k}(x_*)+2u_2\sqrt{V_{W_k}(-\xi x_j)V_{W_k}(x_*)}\\
+    \end{aligned}
+    \end{gather}
+    Because $\Theta''\in\mathcal{F}_{\lambda_0}$, another constraint is $W_{ki}=0$ if $\delta_{ki}=0$. We have the inequality on the weighted variance:
+    \begin{equation}
+        \label{eq:lem5.2}
+        V_{W_k}(x_j)\leq \frac{\left(\max_{i:\delta_{ki}=1}X_{ij}-\min_{i:\delta_{ki}=1}X_{ij}\right)^2}{4},
+    \end{equation}
+    which holds for all $x_j$ including $x_*$. Plugging \eqref{eq:lem5.1} and \eqref{eq:lem5.2} into $\bar{g}(u_1,u_2)$ in \eqref{eq:gbar} finishes the proof.
+\end{proof}
+
+\note{
+\begin{theorem}
+    Let $\lambda_\max\geq\lambda_0>\lambda>0$, $d\equiv n\frac{\lambda_0-\lambda}{r\sqrt{\psi(x_*,x_*)}}>0$, and assume $\Theta_{\lambda_0}$ is known. Then $\forall j =1,2,...,p$, let $\rho_j\equiv\frac{\psi(x_*,-\xi x_j)}{\sqrt{\psi(x_*,x_*)\psi(x_j, x_j)}}$:
+    \begin{enumerate}
+        \item If $\rho_j\geq d$
+        \begin{equation}
+            \bar{T}_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0})=\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+r\sqrt{\psi(x_j,x_j)}
+        \end{equation}
+        \item If $\rho_j<d$
+        \begin{equation}
+            \bar{T}_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0})=\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}-u_2n(\lambda_0-\lambda)+r\sqrt{\psi(x_j,x_j)+2u_2\psi(x_*,-\xi x_j)+u_2^2\psi(x_*,x_*)}
+        \end{equation}
+    \end{enumerate}   
+    where
+    \begin{equation}
+        \begin{gathered}
+            u_2=\frac{-a_1+\sqrt{a_1^2-4a_0a_2}}{2a_2}\\
+            a_2=(1-d^2)\psi^2(x_*,x_*),\\
+            a_1=2(1-d^2)\psi(x_*,-\xi x_j)\psi(x_*,x_*),\\
+            a_0=\psi^2(x_*,-\xi x_j)-d^2\psi(x_*,x_*)\psi(x_j,x_j),\\
+        \end{gathered}
+    \end{equation}
+\end{theorem}
+}
+\begin{todo}
+    Update proof of Theorem 2
+\end{todo}
+\iffalse
+\begin{proof}
+Note that $\psi(\cdot,\cdot)$ is an inner product in $\mathbb{R}^n$ which is linear, symmetric and positive definite.
+
+$-T_\xi(\lambda,\lambda_0,x_j;\Theta_{\lambda_0})$ is the maximization of (28) or (29), so $T_\xi(\lambda,\lambda_0,x_j;\Theta_{\lambda_0})$ is the minimization of the negative of (28) or (29). Written in terms of $\psi(\cdot,\cdot)$, the KKT conditions for minimizing $-\bar{g}$ are:
+
+\begin{equation}
+    \begin{gathered}
+        \frac{1}{2}r^2-\frac{1}{2u_1^2}\psi(-\xi x_j+u_2x_*,-\xi x_j+u_2x_*)-s_1=0,\\
+        -n(\lambda_0-\lambda)+\frac{1}{u_1}\psi(x_*,-\xi x_j+u_2x_*)-s_2=0,\\
+        u_1s_1=u_2s_2=0,
+    \end{gathered}
+\end{equation}
+
+where $s_1\geq0,s_2\geq0$ are slack variables. Because $u_1>0$, $s_1=0$. The first equation in (42) becomes:
+
+\begin{equation}
+    u_1=\frac{1}{r}\sqrt{\psi(-\xi x_j+u_2x_*,-\xi x_j+u_2x_*)},
+\end{equation}
+
+and then second equation in (42) becomes:
+
+\begin{gather}
+    \begin{aligned}
+            \phi(u_2)&:=\frac{\psi(x_*,-\xi x_j+u_2x_*)}{\sqrt{\psi(x_*,x_*)\psi(-\xi x_j+u_2x_*,-\xi x_j+u_2x_*)}}\\
+            &=\frac{n(\lambda_0-\lambda)+s_2}{r\sqrt{\psi(x_*,x_*)}}=d+\frac{s_2}{r\sqrt{\psi(x_*,x_*)}}.
+    \end{aligned}
+\end{gather}
+
+Where $d=n\frac{\lambda_0-\lambda}{r\sqrt{\psi(x_*,x_*)}}>0$. By Cauchy Schwartz we can see $\phi(u_2)\in[0,1]$ and thus $d\in(0,1]$. $\phi(u_2)=-1$ or $1$ $\iff$ $\{X_{i*}-\frac{\Delta_k^Tx_*}{\Delta_k^T\Delta_k}\}_{k,i:\delta_{k,i}=1}$ and $\{-\xi X_{ij}+u_2X_{i*}-\frac{\Delta_k^T(-\xi x_j+u_2x_*)}{\Delta_k^T\Delta_k}\}_{k,i:\delta_{k,i}=1}$ are positive or negative colinear $\iff$ $P_\mathbf{1}x_*$  and $-\xi P_\mathbf{1} x_j+u_2P_\mathbf{1}x_*$ are positive or negative colinear.
+
+
+\begin{enumerate}
+    \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}=-1$:
+    
+    Because $u_2\geq0$, the colinearity implies $\phi(u_2)=\phi(0)=1\geq d$. Note $\phi(0)=\frac{\psi(x_*,-\xi x_j)}{\sqrt{\psi(x_*,x_*)\psi(-\xi x_j,-\xi x_j)}}=\rho_j$ is determined by the data and does not depend on $u_1$ or $u_2$.
+    
+    \begin{enumerate}
+        \item If $d<1=\phi(u_2)$, then by (44):
+        \begin{equation}
+            d<1=\phi(u_2)=d+\frac{s_2}{r\sqrt{\psi(x_*,x_*)}},
+        \end{equation}
+        which implies $s_2>0$. By complementary slackness, $u_2=0$, and combined with (43), we have
+        
+        \begin{equation}
+            u_1=\frac{1}{r}\sqrt{\psi(x_j,x_j)}.
+        \end{equation}
+        
+        Plug $u_1,u_2$ into (28), we have
+        
+        \begin{equation}
+            T_\xi(\lambda,\lambda_0,x_j;\Theta_{\lambda_0})=\min_{\mathcal{U}_1}-\bar{g}(u_1,u_2)=\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+r\sqrt{\psi(x_j,x_j)}
+        \end{equation}
+        
+        \item If $d=1=\phi(u_2)$:
+        
+        Because $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}=-1$, there exist $a>0$ such that for any $k,i\in\{k,i:\delta_{ki}>0\}$
+        
+        \begin{equation}
+            \xi X_{ij}-\frac{\Delta_k^T\xi x_j}{\Delta_k^T\Delta_k}=-a\left(X_{i*}-\frac{\Delta_k^Tx_*}{\Delta_k^T\Delta_k}\right).
+        \end{equation}
+        
+        (43) becomes:
+        
+        \begin{equation}
+            u_1=\frac{1}{r}\sqrt{\psi\left((a+u_2)x_*,(a+u_2)x_*\right)}=\frac{a+u_2}{r}\sqrt{\psi(x_*,x_*)},
+        \end{equation}
+        
+        and (28) becomes:
+        
+        \begin{equation}
+            \bar{g}(u_1,u_2)=-\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+u_2n(\lambda_0-\lambda)-(a+u_2)r\sqrt{\psi(x_*,x_*)}.
+        \end{equation}
+        
+        On the other hand, by definition $d=1$ implies:
+        
+        \begin{equation}
+            n(\lambda_0-\lambda)=r\sqrt{\psi(x_*,x_*)}.
+        \end{equation}
+        
+        Combine (50) and (51):
+        
+        \begin{gather}
+            \begin{aligned}
+                T_\xi(\lambda,\lambda_0,x_j;\Theta_{\lambda_0})&=\min_{\mathcal{U}_1}-\bar{g}(u_1,u_2)\\
+                &=\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+ar\sqrt{\psi(x_*,x_*)}\\
+                &=\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+r\sqrt{\psi(x_j,x_j)}.
+            \end{aligned}
+        \end{gather}
+        
+        
+    \end{enumerate}
+    
+    \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}\in(-1,1)$:
+    
+    $\phi(u_2)$ is monotonically increasing in $u_2$ and $\lim_{u_2\xrightarrow{}\infty}\phi(u_2)=1$. We consider different cases of $\phi(0)$.
+    
+    \begin{enumerate}
+        \item If $\phi(0)=\rho_j\geq d$, the monotonicity of $\phi(u_2)$ implies the optimal $u_2\geq 0$:
+        \begin{equation}
+            \phi(u_2)=d+\frac{s_2}{r\sqrt{\psi(x_*,x_*)}}\geq \phi(0)\geq d.
+        \end{equation}
+        
+        If $u_2>0$, the first $\geq$ in (53) becomes strict $>$and implies $s_2>0$, which contradicts the complementary slackness. Thus we have $u_2=0$. Similar to (46) and (47) we can get $T_\xi(\lambda,\lambda_0,x_j;\Theta_{\lambda_0})$ as in the theorem.
+        
+        \item If $\phi(0)=\rho_j< d$, because $\phi(u_2)\geq d>\phi(0)$, we have $u_2>0$ and thus $s_2=0$. (44) becomes:
+        \begin{equation}
+            \frac{\psi(x_*,-\xi x_j+u_2x_*)}{\sqrt{\psi(x_*,x_*)\psi(-\xi x_j+u_2x_*,-\xi x_j+u_2x_*)}}=d
+        \end{equation}
+        
+        Because $\xi P_\mathbf{1}x_j$ and $P_\mathbf{1}x_*$ are not colinear, $d<1$. Because the denominator of the left hand side is positive, we can multiply both sides by it, square both sides and expand the inner products to get a quadratic equation:
+        
+        \begin{equation}
+            a_2u_2^2+a_1u_2+a_0=0,
+        \end{equation}
+        
+        where $a_0,a_1,a_2$ are the same as in the theorem. We can see that:
+        
+        \begin{equation}
+            \begin{gathered}
+                a_1^2-4a_0a_2=4d^2(1-d^2)\psi^2(x_*,x_*)\left(\psi(x_*,x_*)\psi(x_j,x_j)-\psi^2(x_*,x_j)\right)>0,\\
+                a_2>0,\,a_0=\psi(x_*,x_*)\psi(x_j,x_j)\left(\phi(0)^2-d^2\right)<0,
+            \end{gathered}
+        \end{equation}
+        
+        so (55) only has one positive solution as $u_2$ in the theorem. Plugging the solution $u_2$ into (54), the left hand side is positive, so $u_2$ is also the solution to (54) and thus the optimal to problem (28). Combined with (43), it will lead to the result in the theorem.
+        
+        
+    \end{enumerate}
+    
+    \item If $\frac{\langle\xi P_{\mathbf{1}}x_j,P_{\mathbf{1}}x_*\rangle}{||\xi P_{\mathbf{1}}x_j||_2||P_{\mathbf{1}}x_*||_2}=1$:
+    
+    $\rho_j=-1<d$. There exists $a>0$ such that for any $k,i\in\{k,i:\delta_{ki}>0\}$
+    
+    \begin{equation}
+        \xi X_{ij}-\frac{\Delta_k^T\xi x_j}{\Delta_k^T\Delta_k}=a\left(X_{i*}-\frac{\Delta_k^Tx_*}{\Delta_k^T\Delta_k}\right).
+    \end{equation}
+    
+    We first minimize $-\bar{g}(u_1,u_2)$. Plugging (57) into (28):
+    
+    \begin{equation}
+        -\bar{g}(u_1,u_2)=\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}-u_2n(\lambda_0-\lambda)+\frac{1}{2}u_1r^2+\frac{1}{2u_1}(u_2-a)^2\psi(x_*,x_*).
+    \end{equation}
+    
+    Minimizing over $u_2\geq 0$, we have:
+    
+    \begin{equation}
+        u_2=a+\frac{u_1n(\lambda_0-\lambda)}{\psi(x_*,x_*)},
+    \end{equation}
+    
+    and (58) becomes:
+    
+    \begin{equation}
+        \min_{u_2\geq0}-\bar{g}(u_1,u_2)=\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+\frac{1}{2}u_1r^2(1-d^2)-an(\lambda_0-\lambda).
+    \end{equation}
+    
+    Note that $\Theta_{\lambda_0}=\Delta\Theta_{\lambda_0}$ and $\Theta\mathbf{1}=1$ implies $\sum_i\Theta_{\lambda_0,ki}=0,\forall k$. With (57), the first term in (60) is:
+    
+    \begin{gather}
+        \begin{aligned}
+            \xi x_j^T\Theta_{\lambda_0}^Td_k^{1/2}&=\sum_k\sum_i\xi X_{ij}\Theta_{\lambda_0,ki}d_k^{1/2}\\
+            &=\sum_k\sum_i \delta_{ki}d_k^{1/2}\xi \left(\frac{\Delta_k^T(\xi x_j-ax_*)}{\Delta_k^T\Delta_k}+aX_{i*}\right)\Theta_{\lambda_0,ki}\\
+            &=\sum_kd_k^{1/2}\frac{\Delta_k^T(\xi x_j-ax_*)}{\Delta_k^T\Delta_k}\sum_i\delta_{ki}\Theta{\lambda_0,ki}+a\sum_k\sum_i\delta_{ki}d_k^{1/2}X_{i*}\Theta{\lambda_0,ki}\\
+            &=ax_*\Theta_{\lambda_0}^Td_k^{1/2}=an\lambda_0
+        \end{aligned}
+    \end{gather}
+    
+    $a$ can be written as $\sqrt{\frac{\psi(\xi x_j,x_j)}{\psi(x_*,x_*)}}=\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}$, then (60) becomes:
+    
+    \begin{equation}
+        \min_{u_2\geq0}-\bar{g}(u_1,u_2)=\frac{1}{2}u_1r^2(1-d^2)+\sqrt{\frac{\psi(\xi x_j,x_j)}{\psi(x_*,x_*)}}n\lambda>\sqrt{\frac{\psi(\xi x_j,x_j)}{\psi(x_*,x_*)}}n\lambda=\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}n\lambda.
+    \end{equation}
+    
+    Then $T_\xi(\lambda,\lambda_0,x_j;\Theta_{\lambda_0})$, which is the minimal of (29), will be $\frac{||\xi P_\mathbf{1}x_j||_2}{||P_\mathbf{1}x_*||_2}n\lambda$. 
+\end{enumerate}
+
+\end{proof}
+\fi
+
+If $\max_{\xi=-1,1}\bar{T}_{\xi,j}(\lambda,\lambda_0)<n\lambda$, we can safely conclude $\beta_{\lambda,j}=0$.
+
+
+
+
+
+
+\vspace{5cm}
+Reference:
+\begin{itemize}
+    \item Solving the Cox Proportional Hazards Model and Its
+Applications, 
+
+https://www2.eecs.berkeley.edu/Pubs/TechRpts/2017/EECS-2017-110.pdf
+\end{itemize}
+
+\end{document}
+
