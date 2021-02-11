@@ -22,6 +22,7 @@
 \providecommand{\sign}{\textrm{sign}}
 \providecommand{\note}[1]{\textcolor{red}{#1}}
 \providecommand{\lam}{\lambda}
+\providecommand{\comment}[1]{\textcolor{blue}{#1}}
 
 \title{Cox Screening}
 \date{}
@@ -162,7 +163,7 @@ Note that $\forall\Theta,\Theta'\in\mathcal{F}_\lambda$, if $\delta_{ki}=0$, $\T
     \begin{equation}
         \label{eq:expand}
         g(\Theta')-g(\Theta)-\langle\nabla g(\Theta),\Theta'-\Theta\rangle=\frac{1}{2}\langle\nabla^2 g(\Theta''),(\Theta'-\Theta)^{\circ 2}\rangle%\geq \frac{1}{2}||\Theta'-\Theta||_2^2,
-    \end{equation},
+    \end{equation}
     for some $\Theta''$ on the line segment between $\Theta'$ and $\Theta$, denoted as $\Theta''\in[\Theta',\Theta]$.
 \end{lemma}
 Note $\Theta''\in[\Theta',\Theta]$ implies that $\Theta''\in\mathcal{F}_\lambda$ because $\mathcal{F}_\lambda$ is convex.\\
@@ -184,6 +185,7 @@ Let $\Theta_\lambda$ denote the the optimal solution of $\Theta$ to \eqref{eq:du
     for some $\Theta''$ on the line segment between $\Theta_\lambda$ and $\Theta_{\lambda_0}$, denoted as $\Theta''\in[\Theta_\lambda,\Theta_{\lambda_0}]$.
 \end{theorem}
 }
+\comment{Inequality 1. I don't directly see how it can be improved.}
 
 \begin{proof}
 It is easy to see that $\mathcal{F}_\lambda\subseteq\mathcal{F}_{\lambda_0}$. Therefore $\Theta_\lambda,\Theta_{\lambda_0}\in \mathcal{F}_{\lambda_0}$. By Lemma ~\ref{lem:1}:
@@ -464,12 +466,14 @@ End of proof.
         \leq &V_{W_k}(x_j)+u_2^2V_{W_k}(x_*)+2u_2\sqrt{V_{W_k}(-\xi x_j)V_{W_k}(x_*)}\\
     \end{aligned}
     \end{gather}
+    \comment{Inequality 2. Can be improved by bounding weighted covariance more tightly.}\\
     Because $\Theta''\in\mathcal{F}_{\lambda_0}$, another constraint is $W_{ki}=0$ if $\delta_{ki}=0$. We have the inequality on the weighted variance:
     \begin{equation}
         \label{eq:lem5.2}
         V_{W_k}(x_j)\leq \frac{\left(\max_{i:\delta_{ki}=1}X_{ij}-\min_{i:\delta_{ki}=1}X_{ij}\right)^2}{4},
     \end{equation}
-    which holds for all $x_j$ including $x_*$. Plugging \eqref{eq:lem5.1} and \eqref{eq:lem5.2} into $\bar{g}(u_1,u_2)$ in \eqref{eq:gbar} finishes the proof.
+    which holds for all $x_j$ including $x_*$. Plugging \eqref{eq:lem5.1} and \eqref{eq:lem5.2} into $\bar{g}(u_1,u_2)$ in \eqref{eq:gbar} finishes the proof.\\
+    \comment{Inequality 3. Can be improved by considering more constraints on $W$ (which are just constraints on $\Theta''$).}
 \end{proof}
 
 \note{
