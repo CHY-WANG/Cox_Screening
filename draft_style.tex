@@ -1,0 +1,52 @@
+\documentclass{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{margin=1in}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[ruled,vlined, linesnumbered]{algorithm2e}
+\usepackage[english]{babel}
+\usepackage[nottoc]{tocbibind}
+\usepackage{xcolor}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{booktabs}
+\usepackage{epstopdf}% To incorporate .eps illustrations using PDFLaTeX, etc.
+\usepackage{hyperref}
+\hypersetup{colorlinks=true, citecolor=black, linkcolor=., urlcolor=cyan}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}{Lemma}[section]
+\newtheorem{todo}{To Do}
+\graphicspath{{plots/}}
+\bibliographystyle{unsrt}
+\usepackage{appendix}
+
+% Custom commands / shortcuts
+\providecommand{\sign}{\textrm{sign}}
+\providecommand{\pb}[1]{\textcolor{red}{#1}}
+\providecommand{\lam}{\lambda}
+\newcommand{\quotes}[1]{``#1''}
+\providecommand{\note}[1]{\textcolor{red}{#1}}
+\providecommand{\comment}[1]{\textcolor{blue}{#1}}
+
+
+\title{Sequential Safe Screening Method for Lasso Penalized Cox Regression}
+\author{Chuyi Wang\\Department of Statistics and Actuarial Sciences\\University of Iowa
+  \and
+  Patrick Breheny\\Department of Biostatistics\\University of Iowa}
+\date{}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+\end{abstract}
+
+\input{main}
+
+\bibliography{ref}
+
+\end{document}
