@@ -283,7 +283,7 @@ On the first row, we vary the sample size $n$, the number of features $p$ and si
 In this section, we will apply the proposed sequential safe rule on the All Lending Club Loan Data (\url{https://www.kaggle.com/wordsforthewise/lending-club}) to help solve the Lasso penalized Cox regression problem explaining loan default with a set of credit features. The observed time $t_i$ is the number of months between time when loan was issued and the time of last payment received. The observed event is a failure ($y_i=1$) if the loan status is ``Charged Off'', ``Default'', or ``Does not meet the credit policy. Status:Charged Off''. There are $p=91$ features in the feature matrix used to explain failure. $n=12,000$ subjects are sampled after stratified by event type as the training set. The Lasso penalized Cox regression problem will be solved along a path of $L$ lambda values equally spaced on log scale between $(0.05\lambda_{\max},\lambda_{\max})$. The following plot shows the number of discards the sequential safe rule makes at each $\lambda$ value with different value of $L$.
 
 \begin{center}
-    \includegraphics[width=0.6\textwidth]{app.pdf}
+    \includegraphics[width=0.6\textwidth]{fig/app.pdf}
 \end{center}
 
 The ``Max'' line stands for the actual number of zero coefficients in the solution, which is the theoretical maximum number of features a safe screening method can discard. When $L$ is large, $\lambda$ values are more closely spaced and the previous solution solution and the screening power is higher uniformly over the path. Also, at the beginning of the path when the solution is sparser, the proposed sequential safe rule can discard a substantial proportion of the features with zero coefficients.
