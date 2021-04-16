@@ -6,9 +6,7 @@ The Cox proportional hazards regression (Cox regression) \citep{cox1972regressio
 
 However, when the number of features is large, Cox regression, like other regression methods, is prone to over-fitting. Moreover, when the number of features is greater then number of subjects, the maximum likelihood estimates are no longer unique. Finally, coefficients go to infinity in the case of complete or quasi-complete separation, an event that is increasingly likely to occur as the number of features increase. Regularization methods such as the lasso are effective at dealing with all of these problems \citep{tibshirani1997lasso}. Lasso-penalized Cox regression is not only more stable, but carries out automatic feature selection by setting many coefficients equal to zero, and is thus particularly attractive when dealing with high dimensional data. Typical practice is to solve the regression models over a path as the amount of penalization is decreases. Efficient algorithms for obtaining the solution path to Lasso-penalized Cox regression have been previously developed \citep{simon2011regularization}.
 
-In recent years, big data has become more easily accessible and there is an increasing need to study ultra high dimensional data with millions of features. This introduces great challenge to existing optimization methods. One promising technique to tackle this challenge is ``screening'', in which ``inactive'' features -- features whose coefficients are equal to zero -- are identified prior to fitting and ``discarded''. The discarded features can then be ignored during the optimization, which results in dimension reduction and improvments in computation time and memory cost. The ``strong'' screening rule \citep{Tibshirani2012} was derived in a general form for a class of Lasso type problems that includes Lasso penalized Cox regression. It discards a large proportion of features but requires a check afterwards to verify that no features were incorrectly discarded. Another type of screening is ``safe'' rules, which are mathematically guaranteed not to make a mistake and therefore don't require a check. Skipping the post-convergence checking stage saves time in general; however, safe rules are typically less powerful than strong rules in the sense of achieving less dimension reduction, and which of the two approaches is best in practice depends on a number of factors \pb{citation?}.
-
-\pb{The SAFE rule \citep{ko2017solving} is one existing safe rule for Lasso penalized Cox regression.}
+In recent years, big data has become more easily accessible and there is an increasing need to study ultra high dimensional data with millions of features. This introduces great challenge to existing optimization methods. One promising technique to tackle this challenge is ``screening'', in which ``inactive'' features -- features whose coefficients are equal to zero -- are identified prior to fitting and ``discarded''. The discarded features can then be ignored during the optimization, which results in dimension reduction and improvments in computation time and memory cost. The ``strong'' screening rule \citep{Tibshirani2012} was derived in a general form for a class of Lasso type problems that includes Lasso penalized Cox regression. It discards a large proportion of features but requires a check afterwards to verify that no features were incorrectly discarded. Another type of screening is ``safe'' rules, which are mathematically guaranteed not to make a mistake and therefore don't require a check. Skipping the post-convergence checking stage saves time in general; however, safe rules are typically less powerful than strong rules in the sense of achieving less dimension reduction, and which of the two approaches is best in practice depends on a number of factors \pb{citation?}. For Lasso penalized Cox regression, the SAFE rule \citep{ko2017solving} is one existing safe rule. However, it has a mistake in the derivation and makes it unsafe in case with tied failure times. While there is no tied failure time, the SAFE rule is too weak to discard a decent proportion of features.
 
 Sequential safe rules improve upon safe screening by taking advantage of the path structure of the solution. They utilize the solution at previous penalty parameter values for screening and this extra information greatly increases the power. Moreover, adaptive screening approaches can be built upon sequential safe rules: a previous solution can be safely reused multiple times to greatly reduce the computation cost of screening while having a small influence on the screening power \pb{cite our other paper}. Sequential safe rules are both mathematically and computationally more complicated and previous studies have focused mainly on linear regression \citep{wang2013lasso}. Safe screening rules for Lasso-penalized Logistic regression \citep{wang2014safe} were first proposed in a non-sequential manner but can be easily extended to sequential rules.  This suggests the possibility of extending sequential safe rule to other types of Lasso problems.
 
@@ -98,16 +96,26 @@ for any $\lambda_1<\lambda_{0}\in (0,\lambda_{max}]$, where $(\cdot)^{\circ2}$ i
     \label{thm:1}
     For any $\lambda_1<\lambda_{0}\in (0,\lambda_{max}]$ 
     \begin{equation}
-        \left\langle\nabla^2 g(\Theta''),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)^{\circ 2}\right\rangle\leq r^2(\lambda_1,\lambda_0)\equiv 2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)-g(\Theta_{\lambda_0})\right),
+        \left\langle\nabla^2 g(\Theta''),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)^{\circ 2}\right\rangle\leq r^2(\lambda_1,\lambda_0)\equiv 2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)-g*\right),
     \end{equation}
-    for some $\Theta''\in\mathcal{F}_{\lambda_{\infty}}$.
+    for some $\Theta''\in\mathcal{F}_{\lambda_{\infty}}$ and some $g^*\leq g(\Theta_{\lambda_1})$.
 \end{theorem}
 
+An obvious choice of $g^*$ is $g(\Theta_{\lambda_0})$ since $g(\Theta_{\lambda_1})\equiv\underset{\Theta\in \mathcal{F}_{\lambda_1}}{\mathrm{min}}g(\Theta)\geq\underset{\Theta\in \mathcal{F}_{\lambda_0}}{\mathrm{min}}g(\Theta)\equiv g\left(\Theta_{\lambda_0}\right)$. We propose to instead use 
 
+\begin{gather}
+    \label{eq:gstar}
+    \begin{aligned}
+        &g(\Theta^*_{\lambda_1})\equiv\min_\Theta g(\Theta)\\
+        s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{\lambda_0} d^{1/2}|\leq n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
+    \end{aligned}
+\end{gather}
 
-This theorem says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. The center and the size can be computed without the unknown quantity $\Theta_{\lambda_1}$.
+We have $g(\Theta^*_{\lambda_1})\leq g(\Theta_{\lambda_1})$ because compared to $\mathcal{F}_{\lambda_1}$, \eqref{eq:gstar} removes some constraints and its feasible set contains $\mathcal{F}_{\lambda_1}$. The problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $j$ that satisfy $|x_j^T\Theta_{\lambda_0} d^{1/2}|\leq n\lambda_0$, or in other word, have non-zero coefficients $\lambda_0$. Because the sparsity of Lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{\lambda_1})$ will not introduce extra cost.
 
- Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$.
+Theorem \ref{thm:1} says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. The center and the size can be computed without the unknown quantity $\Theta_{\lambda_1}$. 
+
+ Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
 
 \subsection{Upper bound via Solving Bounded Optimization}
 
@@ -412,14 +420,7 @@ Therefore $\Theta_{\lambda_1},\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\in \
     \left\langle\nabla^2 g(\Theta''),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)^{\circ 2}\right\rangle=2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)-g(\Theta_{\lambda_1})+\left\langle\nabla g\left(\Theta_{\lambda_1}\right),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)\right\rangle\right),
 \end{equation}
 
- for some $\Theta''\in[\Theta_\lambda,\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}]\subseteq \mathcal{F}_\lambda$. We also have
-
-\begin{equation}
-    \label{eq:thm2.2}
-    g(\Theta_{\lambda_1})\equiv\underset{\Theta\in \mathcal{F}_{\lambda_1}}{\mathrm{min}}g(\Theta)\geq\underset{\Theta\in \mathcal{F}_{\lambda_0}}{\mathrm{min}}g(\Theta)\equiv g\left(\Theta_{\lambda_0}\right).
-\end{equation}
-
-On the other hand, the Slater's condition and thus the KKT condition for the dual problem \eqref{eq:dualTheta} holds at $\lambda_1$:
+ for some $\Theta''\in[\Theta_\lambda,\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}]\subseteq \mathcal{F}_\lambda$. Looking at the gradient term, the Slater's condition and thus the KKT condition for the dual problem \eqref{eq:dualTheta} holds at $\lambda_1$:
 
 \begin{equation}
     \label{eq:thm2.3}
@@ -461,7 +462,7 @@ Because $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\in \mathcal{F}_{\lambda_1
     \end{aligned}
 \end{gather}
 
-Combining \eqref{eq:thm2.1}, \eqref{eq:thm2.2}, \eqref{eq:thm2.5} and \eqref{eq:thm2.6}, we have Theorem~\ref{thm:1} holds and end the proof.
+Combining \eqref{eq:thm2.1}, \eqref{eq:thm2.5}, \eqref{eq:thm2.6} and any $g^*\leq g(\Theta_{\lambda_1})$, we have Theorem~\ref{thm:1} holds and end the proof.
 
 \hspace{0 in}
 
