@@ -107,11 +107,11 @@ An obvious choice of $g^*$ is $g(\Theta_{\lambda_0})$ since $g(\Theta_{\lambda_1
     \label{eq:gstar}
     \begin{aligned}
         &g(\Theta^*_{\lambda_1})\equiv\min_\Theta g(\Theta)\\
-        s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{\lambda_0} d^{1/2}|\leq n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
+        s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
     \end{aligned}
 \end{gather}
 
-We have $g(\Theta^*_{\lambda_1})\leq g(\Theta_{\lambda_1})$ because compared to $\mathcal{F}_{\lambda_1}$, \eqref{eq:gstar} removes some constraints and its feasible set contains $\mathcal{F}_{\lambda_1}$. The problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $j$ that satisfy $|x_j^T\Theta_{\lambda_0} d^{1/2}|\leq n\lambda_0$, or in other word, have non-zero coefficients $\lambda_0$. Because the sparsity of Lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{\lambda_1})$ will not introduce extra cost.
+We have $g(\Theta^*_{\lambda_1})\leq g(\Theta_{\lambda_1})$ because compared to $\mathcal{F}_{\lambda_1}$, \eqref{eq:gstar} removes some constraints and its feasible set contains $\mathcal{F}_{\lambda_1}$. The problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $j$ that satisfy $|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0$, or in other word, have non-zero coefficients $\lambda_0$. Because the sparsity of Lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{\lambda_1})$ will not introduce extra cost.
 
 Theorem \ref{thm:1} says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. The center and the size can be computed without the unknown quantity $\Theta_{\lambda_1}$. 
 
@@ -222,6 +222,7 @@ In this section, we will use simulated data to evaluate the performance of the p
 By default, we set $n=1,000$, $p=3,000$, $c=0.5$, $s=10$, $b=1$, $\alpha=0.2$, $L=100$ and $\lambda_{\min}=0.05\lambda_{\max}$. In each experiment, one of the factors will vary and the performance will be compared in terms of the total power, which is defined as the total number of discards along the path over the total number of 0 coefficients along the path. We will use the experiment to study the how the factors affect the screening power and what are the limitations of the proposed screening method.
 
 \subsection{Limitations}
+\label{sec:lim}
 
 
 The nature of Cox regression is very different from other generalized linear regression problems. This leads to some limitations when developing sequential safe rule for Lasso penalized Cox regression and thus a weaker screening power. In this section we will discuss some limitations that prevent us from developing a powerful screening. By understanding the limitations, we will show under some special cases, the proposed method have a much better performance.
@@ -288,17 +289,42 @@ On the first row, we vary the sample size $n$, the number of features $p$ and si
 
 \section{Application}
 
-In this section, we will apply the proposed sequential safe rule on the All Lending Club Loan Data (\url{https://www.kaggle.com/wordsforthewise/lending-club}) to help solve the Lasso penalized Cox regression problem explaining loan default with a set of credit features. The observed time $t_i$ is the number of months between time when loan was issued and the time of last payment received. The observed event is a failure ($y_i=1$) if the loan status is ``Charged Off'', ``Default'', or ``Does not meet the credit policy. Status:Charged Off''. There are $p=91$ features in the feature matrix used to explain failure. $n=12,000$ subjects are sampled after stratified by event type as the training set. The Lasso penalized Cox regression problem will be solved along a path of $L$ lambda values equally spaced on log scale between $(0.05\lambda_{\max},\lambda_{\max})$. The following plot shows the number of discards the sequential safe rule makes at each $\lambda$ value with different value of $L$.
+In this section, we will test the proposed sequential safe rule on the Lung Cancer Patients data \citep{shedden2008gene}, to help solve the Lasso penalized Cox regression problem explaining lung cancer hazard with gene expression levels and some demographic data as features. The observed time $t_i$ is the number of months in study. The observed event is a failure ($y_i=1$) if the patient died. There are $p=22,304$ features in the feature matrix used to explain failure, with $22,283$ being gene expression levels and the rest $21$ being demographic features. The sample size is $n=442$. The Lasso penalized Cox regression problem will be solved along a path of $L=100$ lambda values equally spaced on log scale between $(0.2\lambda_{\max},\lambda_{\max})$. 
+
+To address the limitations discussed in \ref{sec:lim}, we will consider modified datasets combining the following two modifications on the raw data. First, we can cut the observed times into intervals of length 1 year. This modification reduce the number of unique failure times and reduce the dimensionality of the dual form. Second, we can cut each gene expression level feature at its sample median to create a binary feature. This modification leads to a balanced binary distribution of the features and tightens the ratio in \eqref{eq:alpharatio}. These two modification also represents special cases that can occur in real data. The first modification corresponds to survival data where observed times are recorded in coarse units. The second modification corresponds to data where features are recorded in levels of ``high'' and ``low'', instead of raw measurements.
+
+In the following experiment, we will test different screening methods, and the algorithm optimizing the reduced problem after screening is the Coordinate Descent \citep{simon2011regularization} with Active Cycling \citep{lee2007efficient}. Active Cycling (AC) is a simple idea similar to screening, where the reduced problem with only features that are active in previous solution is first solved and then a KKT condition check validates if there is any other active feature. It is easy to be implemented with any screening method and is shown to greatly reduce computation cost in most cases, so in this experiment we combine it with all screening method. The screening methods we compare are: no screening other than AC (AC), basic version of the sequential safe rule that uses only the solution at $\lambda_{\max}$ (Basic), sequential safe rule that uses previous solution (Sequential), sequential strong rule (SSR) and adaptive screening built on the sequential safe rule (Adaptive).
+
+Table \ref{Tab:real} summarizes the total computation cost with standard error in second, using different screening methods and datasets. In the dataset with coarse observed times and binary features (Both Modified), the sequential safe screening can provide significant speedup that is close to sequential strong rule. Moreover, an adaptive screening can be built upon the sequential safe rule and outperform all other screening methods in the special case. The adaptive screening method is also robust and is close to fastest under all cases.
+
+\begin{table}[H]
+\centering
+\begin{tabular}{lllll}
+\toprule
+Screening method & Raw Data & Modified Times & Modified Features & Both Modified \\
+\midrule
+AC & 2.386 (0.003) & 1.889 (0.005) & 2.342 (0.004) & 1.869 (0.004) \\
+Basic & 2.463 (0.003) & 1.919 (0.003) & 2.288 (0.004) & 1.906 (0.004) \\
+Sequential & 2.911 (0.003) & 2.262 (0.004) & 2.447 (0.006) & 1.306 (0.005) \\
+SSR & \textbf{1.254 (0.003)} & \textbf{1.055 (0.004)} & \textbf{1.225 (0.003)} & 1.030 (0.003) \\
+Adaptive & 1.302 (0.004) & 1.078 (0.002) & 1.255 (0.003) & \textbf{0.769 (0.003)} \\
+\bottomrule
+\end{tabular}
+\caption{Average computing time in second (standard error)}
+\label{Tab:real}
+\end{table}
+
+
+
+The following plot shows the number of features discarded by sequential safe rule at each $\lambda$ value on each dataset. It shows that smaller number of unique failure times and distribution of features closer to balanced binary distribution both lead to stronger screening power of the sequential safe rule.
 
 \begin{center}
-    \includegraphics[width=0.6\textwidth]{app.pdf}
+    \includegraphics[width=0.6\textwidth]{shedden.pdf}
 \end{center}
-
-The ``Max'' line stands for the actual number of zero coefficients in the solution, which is the theoretical maximum number of features a safe screening method can discard. When $L$ is large, $\lambda$ values are more closely spaced and the previous solution solution and the screening power is higher uniformly over the path. Also, at the beginning of the path when the solution is sparser, the proposed sequential safe rule can discard a substantial proportion of the features with zero coefficients.
 
 \section{Discussion}
 
-In this paper, we propose a novel sequential safe screening rule to help solving Lasso penalized Cox regression efficiently along a path of $\lambda$ values. It utilize previous solutions on the path to discard more features that will have 0 coefficients. We study factors that affect the power of the screening method and show that under some special cases it can discard a substantial proportion of features. The results also show the possibility to derive a sequential safe screening method for Lasso type problems with nonstandard likelihood functions that are not separable and can provide insights for developing screening methods for other Lasso type problems.
+In this paper, we propose a novel sequential safe screening rule to help solving Lasso penalized Cox regression efficiently along a path of $\lambda$ values. It utilize previous solutions on the path to discard more features that will have 0 coefficients. We study factors that affect the power of the screening method and show that under some special cases it can discard a substantial proportion of features and can provide benefits in computation cost when incorporated into the adaptive screening framework. The results also show the possibility to derive a sequential safe screening method for Lasso type problems with nonstandard likelihood functions that are not separable and can provide insights for developing screening methods for other Lasso type problems.
 
 \appendix
 \appendixpage
