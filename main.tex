@@ -45,7 +45,7 @@ for any $k,i$, and the KKT conditions for the primal problem~\eqref{eq:cox} can 
 \begin{gather}
     \label{eq:kkt}
     \begin{aligned}&\beta_{\lambda,j}=0\implies\left|x_j^T\Theta_\lambda^Td^{1/2}\right|\leq n\lambda\\
-    & \beta_{\lambda,j}\neq0\implies\left|x_j^T\Theta_\lambda^Td^{1/2}\right|= n\lambda\textit{sign}(\beta_{\lambda,j}).
+    & \beta_{\lambda,j}\neq0\implies x_j^T\Theta_\lambda^Td^{1/2}= n\lambda\textit{sign}(\beta_{\lambda,j}).
     \end{aligned}
 \end{gather}
 
@@ -360,7 +360,7 @@ Minimizing with respect to $\beta$, the partial derivative is:
 
 \begin{equation}
     \label{eq:partialbeta}
-    \frac{\partial}{\partial\beta}(\cdot) =-X^Tb+X^TU^T\mathbf{1}+n\lambda\partial||\beta||_1
+    \frac{\partial}{\partial\beta}(\cdot) =-X^Tb+X^TU^T\mathbf{1}+n\lambda\frac{\partial||\beta||_1}{\partial\beta}
 \end{equation}
 
 so the minimum is obtained iff $
