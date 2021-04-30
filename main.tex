@@ -15,16 +15,14 @@ In this paper, we develop a novel sequential safe rule for Lasso penalized Cox r
 \section{Screening Method}
 \subsection{Problem Definition}
 
-In a survival analysis, we collect data on $n$ subjects of the form $\{(t_i,y_i,\tilde{x}_i)\}_{i=1}^n$, where $t_i$ is the observed time and is a time of failure if $y_i=1$ or time of right censoring if $y_i=0$ (failure event happens at some unknown time after $t_i$). $\tilde{x}_i=(X_{i1},X_{i2},...,X_{ip})$ is a vector of $p$ features. With these observed data, we can define the following quantities. Let $X=[\tilde{x}_1,\tilde{x}_2,...,\tilde{x}_n]^T=[x_1,x_2,...,x_p]$ denote the $n\times p$ feature matrix. Suppose there are $f$ unique times when at least one failure happens. Let  $\Delta=[\Delta_1,\Delta_2,...,\Delta_f]^T=\{\delta_{ki}\}\in\{0,1\}^{f\times n}$ denote the at-risk matrix, where $\delta_{ki}=1$ if subject $i$ is at risk at the $k$-th unique failure time. Let $Y$ denote the $f\times n$ response matrix where $Y_{ki}=1$ if subject $i$ died at the $k$-th unique failure time and $Y_{ki}=0$ otherwise. We have $y=Y^T\mathbf{1}$ and $d=Y\mathbf{1}$ is the $f\times 1$ number of deaths vector, where $d_k>0$ is the number of failures at $k$-th unique failure time.
+In a survival analysis, we collect data on $n$ subjects of the form $\{(t_i,y_i,\tilde{x}_i)\}_{i=1}^n$, where $t_i$ is the observed time and is a time of failure if $y_i=1$ or time of right censoring if $y_i=0$ (failure event happens at some unknown time after $t_i$). $\tilde{x}_i=(X_{i1},X_{i2},...,X_{ip})$ is a vector of $p$ features. With these observed data, we can define the following quantities. Let $X=[\tilde{x}_1,\tilde{x}_2,...,\tilde{x}_n]^T=[x_1,x_2,...,x_p]$ denote the $n\times p$ feature matrix. Suppose there are $f$ unique times when at least one failure happens. Let  $\Delta=[\Delta_1,\Delta_2,...,\Delta_f]^T=\{\delta_{ki}\}\in\{0,1\}^{f\times n}$ denote the at-risk matrix, where $\delta_{ki}=1$ if subject $i$ is at risk at the $k$-th unique failure time. Let $Y$ denote the $f\times n$ response matrix where $Y_{ki}=1$ if subject $i$ died at the $k$-th unique failure time and $Y_{ki}=0$ otherwise. We have $y=Y^T\mathbf{1}$ and $d=Y\mathbf{1}$ is the $f\times 1$ number of deaths vector, where $d_k>0$ is the number of failures at $k$-th unique failure time. \pb{$y$ (no subscript) not defined, although fairly clear from context that it is an $n \times 1$ vector of elements $y_i$}
 
 The Lasso penalized Cox regression, using Breslow approximation \citep{breslow1974covariance} for tied failure times, is the optimization of the following problem:
 \begin{equation}
     \label{eq:cox}
     \underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-y^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{\tilde{x}_i^T\beta}\right)+n\lambda||\beta||_1,
 \end{equation}
-
-where $\beta\in\mathbb{R}^p$ is the coefficient vectors for the $p$ features and $\lambda>0$ is the penalty parameter that controls the size of Lasso penalty. The dual form of problem above can be given by (please see appendix for details):
-
+where $\beta\in\mathbb{R}^p$ is the coefficient vectors for the $p$ features and $\lambda>0$ is the penalty parameter that controls the size of Lasso penalty. The dual form of \eqref{eq:cox} is given by (see appendix for details):
 \begin{gather}
         \label{eq:dualTheta}
         \underset{\Theta\in \mathbb{R}^{f\times n}}{\mathrm{min}}g(\Theta)\equiv\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}(Y_{ki}+d_k^{1/2}\Theta_{ki})\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta_{ki}}{d_k^{1/2}}\right)\\
@@ -32,7 +30,7 @@ where $\beta\in\mathbb{R}^p$ is the coefficient vectors for the $p$ features and
             &||X^T\Theta^Td^{1/2}||_\infty\leq n\lambda,\quad D^{1/2}\Theta+Y+(1-\Delta)> 0,\\& \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0\}\nonumber,
         \end{aligned}
 \end{gather}
-
+\pb{should define $D$ as well as the fact that $d^{1/2}$ means element-wise square root}
 where $\Theta\in \mathbb{R}^{f\times n}$ is the dual variable, $0\log 0\equiv0$, ``$>$'' is element wise greater-than and $\circ$ is element wise product. The dual problem becomes the minimization of the convex function $g(\Theta)$ within a convex feasible set $\mathcal{F}_\lambda$. Let $\beta_\lambda$ denote the solution to the primal problem at penalty parameter value $\lambda$ and $\Theta_{\lambda}$ denote the corresponding dual solution. The primal solution and dual solution can be connected by
 
 \begin{equation}
