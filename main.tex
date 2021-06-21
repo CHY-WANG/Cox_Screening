@@ -1,4 +1,3 @@
-\pb{Needs an abstract}
 
 \section{Introduction}
 
@@ -6,16 +5,16 @@ The Cox proportional hazards regression (Cox regression) \citep{cox1972regressio
 
 However, when the number of features is large, Cox regression, like other regression methods, is prone to over-fitting. Moreover, when the number of features is greater then number of subjects, the maximum likelihood estimates are no longer unique. Finally, coefficients go to infinity in the case of complete or quasi-complete separation, an event that is increasingly likely to occur as the number of features increase. Regularization methods such as the lasso are effective at dealing with all of these problems \citep{tibshirani1997lasso}. Lasso-penalized Cox regression is not only more stable, but carries out automatic feature selection by setting many coefficients equal to zero, and is thus particularly attractive when dealing with high dimensional data. Typical practice is to solve the regression models over a path as the amount of penalization is decreases. Efficient algorithms for obtaining the solution path to Lasso-penalized Cox regression have been previously developed \citep{simon2011regularization}.
 
-In recent years, big data has become more easily accessible and there is an increasing need to study ultra high dimensional data with millions of features. This introduces great challenge to existing optimization methods. One promising technique to tackle this challenge is ``screening'', in which ``inactive'' features -- features whose coefficients are equal to zero -- are identified prior to fitting and ``discarded''. The discarded features can then be ignored during the optimization, which results in dimension reduction and improvments in computation time and memory cost. The ``strong'' screening rule \citep{Tibshirani2012} was derived in a general form for a class of Lasso type problems that includes Lasso penalized Cox regression. It discards a large proportion of features but requires a check afterwards to verify that no features were incorrectly discarded. Another type of screening is ``safe'' rules, which are mathematically guaranteed not to make a mistake and therefore don't require a check. Skipping the post-convergence checking stage saves time in general; however, safe rules are typically less powerful than strong rules in the sense of achieving less dimension reduction, and which of the two approaches is best in practice depends on a number of factors \pb{citation?}. For Lasso penalized Cox regression, the SAFE rule \citep{ko2017solving} is one existing safe rule. However, it has a mistake in the derivation and makes it unsafe in case with tied failure times. While there is no tied failure time, the SAFE rule is too weak to discard a decent proportion of features.
+In recent years, big data has become more easily accessible and there is an increasing need to study ultra high dimensional data with millions of features. This introduces great challenge to existing optimization methods. One promising technique to tackle this challenge is ``screening'', in which ``inactive'' features -- features whose coefficients are equal to zero -- are identified prior to fitting and ``discarded''. The discarded features can then be ignored during the optimization, which results in dimension reduction and improvements in computation time and memory cost. The ``strong'' screening rule \citep{Tibshirani2012} was derived in a general form for a class of Lasso type problems that includes Lasso penalized Cox regression. It discards a large proportion of features but requires a check afterwards to verify that no features were incorrectly discarded. Another type of screening is ``safe'' rules, which are mathematically guaranteed not to make a mistake and therefore don't require a check. Skipping the post-convergence checking stage saves time in general; however, safe rules are typically less powerful than strong rules in the sense of achieving less dimension reduction, and which of the two approaches is best in practice depends on a number of factors \pb{citation?}. For Lasso penalized Cox regression, the SAFE rule \citep{ko2017solving} is one existing safe rule. However, it has a mistake in the derivation and makes it unsafe in case with tied failure times. While there is no tied failure time, the SAFE rule is too weak to discard a decent proportion of features.
 
-Sequential safe rules improve upon safe screening by taking advantage of the path structure of the solution. They utilize the solution at previous penalty parameter values for screening and this extra information greatly increases the power. Moreover, adaptive screening approaches can be built upon sequential safe rules: a previous solution can be safely reused multiple times to greatly reduce the computation cost of screening while having a small influence on the screening power \pb{cite our other paper}. Sequential safe rules are both mathematically and computationally more complicated and previous studies have focused mainly on linear regression \citep{wang2013lasso}. Safe screening rules for Lasso-penalized Logistic regression \citep{wang2014safe} were first proposed in a non-sequential manner but can be easily extended to sequential rules.  This suggests the possibility of extending sequential safe rule to other types of Lasso problems.
+A new class of safe rules takes advantage of the path structure of the solution by utilizing the solution at previous penalty parameter values for screening and this extra information greatly increases the power. Sequential screening can be carried out with such safe rules by always utilizing the latest previous solution. Moreover, adaptive screening approaches \citep{wang2021adaptive} can also be built upon such safe rules: a previous solution can be safely reused multiple times to greatly reduce the computation cost of screening while having a small influence on the screening power. Safe rules that utilize previous solutions are both mathematically and computationally more complicated and previous studies have focused mainly on linear regression \citep{wang2013lasso}. Safe screening rules for Lasso-penalized Logistic regression \citep{wang2014safe} were first proposed in a manner that does not consider previous solutions but can be easily extended to utilize previous solutions. This suggests the possibility of extending this class of safe rules to other types of Lasso problems and then build a adaptive screening on top of it.
 
-In this paper, we develop a novel sequential safe rule for Lasso penalized Cox regression. It looks at the dual form of the problem and by deriving a bound for the dual solution, identifies some of the zero coefficients in the primal solution. The screening power depends on the tightness of the bound and we discuss conditions under which the screening method is most powerful. Last, we carry out numerical studies to show the advantages and disadvantages of these rules.
+In this paper, we develop a novel safe rule for Lasso penalized Cox regression that uses previous solution to improve itself. It looks at the dual form of the problem and by deriving a bound for the dual solution, identifies some of the zero coefficients in the primal solution. The screening power depends on the tightness of the bound and we discuss conditions under which the screening method is most powerful. Last, we carry out numerical studies to show the advantages and disadvantages of the rule.
 
 \section{Screening Method}
 \subsection{Problem Definition}
 
-In a survival analysis, we collect data on $n$ subjects of the form $\{(t_i,y_i,\tilde{x}_i)\}_{i=1}^n$, where $t_i$ is the observed time and is a time of failure if $y_i=1$ or time of right censoring if $y_i=0$ (failure event happens at some unknown time after $t_i$). $\tilde{x}_i=(X_{i1},X_{i2},...,X_{ip})$ is a vector of $p$ features. With these observed data, we can define the following quantities. Let $X=[\tilde{x}_1,\tilde{x}_2,...,\tilde{x}_n]^T=[x_1,x_2,...,x_p]$ denote the $n\times p$ feature matrix. Suppose there are $f$ unique times when at least one failure happens. Let  $\Delta=[\Delta_1,\Delta_2,...,\Delta_f]^T=\{\delta_{ki}\}\in\{0,1\}^{f\times n}$ denote the at-risk matrix, where $\delta_{ki}=1$ if subject $i$ is at risk at the $k$-th unique failure time. Let $Y$ denote the $f\times n$ response matrix where $Y_{ki}=1$ if subject $i$ died at the $k$-th unique failure time and $Y_{ki}=0$ otherwise. We have $y=Y^T\mathbf{1}$ and $d=Y\mathbf{1}$ is the $f\times 1$ number of deaths vector, where $d_k>0$ is the number of failures at $k$-th unique failure time. \pb{$y$ (no subscript) not defined, although fairly clear from context that it is an $n \times 1$ vector of elements $y_i$}
+In a survival analysis, we collect data on $n$ subjects of the form $\{(t_i,y_i,\tilde{x}_i)\}_{i=1}^n$, where $t_i$ is the observed time and is a time of failure if $y_i=1$ or time of right censoring if $y_i=0$ (failure event happens at some unknown time after $t_i$). $\tilde{x}_i=(X_{i1},X_{i2},...,X_{ip})$ is a vector of $p$ features. With these observed data, we can define the following quantities. Let $X=[\tilde{x}_1,\tilde{x}_2,...,\tilde{x}_n]^T=[x_1,x_2,...,x_p]$ denote the $n\times p$ feature matrix. Suppose there are $f$ unique times when at least one failure happens. Let  $\Delta=[\Delta_1,\Delta_2,...,\Delta_f]^T=\{\delta_{ki}\}\in\{0,1\}^{f\times n}$ denote the at-risk matrix, where $\delta_{ki}=1$ if subject $i$ is at risk at the $k$-th unique failure time. Let $Y$ denote the $f\times n$ response matrix where $Y_{ki}=1$ if subject $i$ died at the $k$-th unique failure time and $Y_{ki}=0$ otherwise. We have $y=Y^T\mathbf{1}$ and $d=Y\mathbf{1}$ is the $f\times 1$ number of deaths vector, where $y$ is the $n\times1$ response vector of elements $y_i$ and $d$ is the $n\times1$ vector of elements $d_k>0$, the number of failures at $k$-th unique failure time.
 
 The Lasso penalized Cox regression, using Breslow approximation \citep{breslow1974covariance} for tied failure times, is the optimization of the following problem:
 \begin{equation}
@@ -30,14 +29,12 @@ where $\beta\in\mathbb{R}^p$ is the coefficient vectors for the $p$ features and
             &||X^T\Theta^Td^{1/2}||_\infty\leq n\lambda,\quad D^{1/2}\Theta+Y+(1-\Delta)> 0,\\& \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0\}\nonumber,
         \end{aligned}
 \end{gather}
-\pb{should define $D$ as well as the fact that $d^{1/2}$ means element-wise square root}
-where $\Theta\in \mathbb{R}^{f\times n}$ is the dual variable, $0\log 0\equiv0$, ``$>$'' is element wise greater-than and $\circ$ is element wise product. The dual problem becomes the minimization of the convex function $g(\Theta)$ within a convex feasible set $\mathcal{F}_\lambda$. Let $\beta_\lambda$ denote the solution to the primal problem at penalty parameter value $\lambda$ and $\Theta_{\lambda}$ denote the corresponding dual solution. The primal solution and dual solution can be connected by
+where $\Theta\in \mathbb{R}^{f\times n}$ is the dual variable, $D=diag(d)$, $0\log 0\equiv0$, ``$>$'' is element wise greater-than, $(\cdot)^{1/2}$ is the element wise square root and $\circ$ is element wise product. The dual problem becomes the minimization of the convex function $g(\Theta)$ within a convex feasible set $\mathcal{F}_\lambda$. Let $\beta_\lambda$ denote the solution to the primal problem at penalty parameter value $\lambda$ and $\Theta_{\lambda}$ denote the corresponding dual solution. The primal solution and dual solution can be connected by
 
 \begin{equation}
     \label{eq:dualprimal}
     \Theta_{\lambda,ki}=d_k^{1/2}\delta_{ki}\frac{e^{\tilde{x}_i\beta_\lambda}}{\sum_{i'=1}^n\delta_{ki'}e^{\tilde{x}_{i'}\beta_\lambda}}-d_k^{-1/2}Y_{ki},
 \end{equation}
-
 for any $k,i$, and the KKT conditions for the primal problem~\eqref{eq:cox} can be expressed as:
 
 \begin{gather}
@@ -46,7 +43,6 @@ for any $k,i$, and the KKT conditions for the primal problem~\eqref{eq:cox} can 
     & \beta_{\lambda,j}\neq0\implies x_j^T\Theta_\lambda^Td^{1/2}= n\lambda\textit{sign}(\beta_{\lambda,j}).
     \end{aligned}
 \end{gather}
-
 for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt} we have a trivial closed form solution for the problem at some $\lambda$ values:
 
 \begin{gather}
@@ -56,7 +52,6 @@ for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt} we have a trivia
         \textit{where}\quad\Theta_{\lambda_{\max},ki}=\frac{d_k^{1/2}\delta_{ki}}{\sum_{i'=1}^n\delta_{ki'}}-d_k^{-1/2}Y_{ki}.
     \end{aligned}
 \end{gather}
-
 Thus, when solving the problems on a grid of $L+1$ decreasing $\lambda$ values: $\lambda_0>\lambda_1>...>\lambda_L>0$, it makes more sense to choose $\lambda_0= \lambda_{\max}$ to take advantage of the known solution. If an algorithm solve the problems sequentially in decreasing order of $\lambda$, then solution at $\lambda_{l-1}$ will be known before solving the problem at $\lambda_l$. In the rest of the paper, we will derive screening method for such a path-wise structure. Also, without loss of generality, we will derive the screening method for the problem at $\lambda_1$ assuming the solution at $\lambda_0$ is known, the same method can be applied to any pair of $\lambda_{l}$ and $\lambda_{l-1}$.
 
 The KKT conditions \eqref{eq:kkt} also say that for any $\lambda$ if 
@@ -65,7 +60,6 @@ The KKT conditions \eqref{eq:kkt} also say that for any $\lambda$ if
     \label{eq:disc_cond}
     |x_j^T\Theta_{\lambda}^Td^{1/2}|<n\lambda,
 \end{equation}
-
 we can safely conclude $\beta_{\lambda,j}=0$ and the corresponding $x_j$ can be discarded for the optimization at $\lambda$. Although the left hand side of \eqref{eq:disc_cond} is unknown at $\lambda_1$ until the solution is obtained at $\lambda_1$, we can use the solution at $\lambda_{0}$ to derive some bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})\geq |x_j^T\Theta_{\lambda_1}^Td^{1/2}|$ and then if $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})<n\lambda_1$ we can also safely conclude $\beta_{\lambda_1,j}=0$. The goal is to find a smaller $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})$ to make more discards.
 
 \subsection{Dual Variable Bound}
@@ -85,7 +79,6 @@ The dual function $g(\Theta)$ is twice differentiable in $\mathcal{F}_{\infty}$,
         \label{eq:expand}
         g(\Theta_{\lambda_1})-g(\Theta_{\lambda_{0}})-\langle\nabla g(\Theta_{\lambda_{0}}),\Theta_{\lambda_{1}}-\Theta_{\lambda_{0}}\rangle=\frac{1}{2}\langle\nabla^2 g(\Theta''),(\Theta_{\lambda_{1}}-\Theta_{\lambda_{0}})^{\circ 2}\rangle,%\geq \frac{1}{2}||\Theta'-\Theta||_2^2,
 \end{equation}
-
 for any $\lambda_1<\lambda_{0}\in (0,\lambda_{max}]$, where $(\cdot)^{\circ2}$ is element-wise square, $\langle A,B\rangle=\sum_{i=1}^n\sum_{i'=1}^mA_{ii'}B_{ii'}$ for any $n\times m$ matrix $A,B$, and $\Theta''$ is some point on the line segment between $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$. Because $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$ are in the convex set $\mathcal{F}_{\lambda_{0}}$, $\Theta''$ is also in $\mathcal{F}_{\lambda_{0}}$ and thus in $\mathcal{F}_{\lambda_{\infty}}$. Note $[\nabla g(\Theta'')]_{ki}=\delta_{ki}d_k^{1/2}\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta''_{ki}}{d_k^{1/2}}\right)+d_k^{1/2}$, $[\nabla^2 g(\Theta'')]_{ki,ki}=\frac{\delta_{ki}d_k}{Y_{ki}+d_k^{1/2}\Theta''_{ki}}$ and $\nabla^2 g(\Theta'')$ is a diagonal matrix. For convenience, we will instead use $[\nabla^2 g(\Theta'')]$ to denote the $f\times n$ matrix where $[\nabla^2 g(\Theta'')]_{ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta''_{ki}}$. Using this expansion, we can derive a bound for $\Theta_{\lambda_1}$.
 
 
@@ -108,7 +101,6 @@ An obvious choice of $g^*$ is $g(\Theta_{\lambda_0})$ since $g(\Theta_{\lambda_1
         s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
     \end{aligned}
 \end{gather}
-
 We have $g(\Theta^*_{\lambda_1})\leq g(\Theta_{\lambda_1})$ because compared to $\mathcal{F}_{\lambda_1}$, \eqref{eq:gstar} removes some constraints and its feasible set contains $\mathcal{F}_{\lambda_1}$. The problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $j$ that satisfy $|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0$, or in other word, have non-zero coefficients $\lambda_0$. Because the sparsity of Lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{\lambda_1})$ will not introduce extra cost.
 
 Theorem \ref{thm:1} says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. The center and the size can be computed without the unknown quantity $\Theta_{\lambda_1}$. 
@@ -124,20 +116,17 @@ If $\Theta''$ were known, then by Theorem ~\ref{thm:1} and the fact that $\Theta
  \begin{equation}
      \mathcal{A}(\lambda_1,{\lambda_0},\Theta'')\equiv\{\Theta:\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle\leq r^2(\lambda_1,\lambda_0),\,\Theta\circ(1-\Delta)=0,\, \Theta\mathbf{1}=0\}.
  \end{equation}
-
 $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ is bounded above by:
 
 \begin{equation}
     T^*_{j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} |x_j^T\Theta^T d^{1/2}|.
 \end{equation}
-
 This problem is equivalent to the maximum of the 2 sub-problems:
 
 \begin{equation}
     \label{eq:bounddual}
     T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} \xi x_j^T\Theta^T d^{1/2},
 \end{equation}
-
 where $\xi=-1,1$.
 
 \begin{lemma}
@@ -189,20 +178,21 @@ With this result, we can construct
 \end{equation}
 and it will be an upper bound for $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ that does not depend on any unknown quantities. 
 
-\subsection{Sequential Safe Screening Rule of Lasso Penalized Cox Regression}
+\subsection{Safe Screening Rule of Lasso Penalized Cox Regression}
 
-According to theorem \ref{thm:2} and \eqref{eq:bound}, it can be easily extended that for any $l$ and $j$, if $T_j(\lambda_{l},\lambda_{l-1};\Theta_{\lambda_{l-1}})<n\lambda_l$ we can safely conclude $\beta_{\lambda_l,j}=0$ and $x_j$ can be removed from the optimization at $\lambda_1$. We formally a sequential safe screening rule for Lasso penalized Cox regression that can improve the efficiency of any optimization algorithm for Lasso penalized Cox regression, as described in the following algorithm. 
+According to theorem \ref{thm:2} and \eqref{eq:bound}, it can be easily extended that for any $j$ and pair of $l^*<l$, if $T_j(\lambda_{l},\lambda_{l^*};\Theta_{\lambda_{l^*}})<n\lambda_l$ we can safely conclude $\beta_{\lambda_l,j}=0$ and $x_j$ can be removed from the optimization at $\lambda_l$. We formally a safe screening method for Lasso penalized Cox regression that can improve the efficiency of any optimization algorithm for Lasso penalized Cox regression, as described in the following algorithm. 
 
 \begin{algorithm}[H]
-    \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}\SetKwInOut{Pre}{Pre-compute}\SetKwInOut{Initialize}{Initialize}
+    \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}\SetKwInOut{Pre}{Pre-compute}\SetKwInOut{Initialize}{Initialize}\SetKwInOut{Choose}{Choose}
     \Input{$X,Y,\Delta$, $\lambda_0=\lambda_{\max}>\lambda_1>...>\lambda_L>0$}
     \Initialize{$\beta_{\lambda_0} = 0$}
 
     
     \For{$l\xleftarrow{}$ 1 \KwTo L}{
         \Initialize{$\mathcal{A}_l=\{1,2,...,p\}$}
+        \Choose{$l^*<l$}
         \For{$j\xleftarrow{}$ 1 \KwTo p}{
-            \uIf{$T_j(\lambda_l,\lambda_{l-1};\Theta_{\lambda_{l-1}})<n\lambda_l$}{
+            \uIf{$T_j(\lambda_l,\lambda_{l^*};\Theta_{\lambda_{l^*}})<n\lambda_l$}{
                 Remove $j$ from $\mathcal{A}_l$\;
             }
         }
@@ -213,9 +203,11 @@ According to theorem \ref{thm:2} and \eqref{eq:bound}, it can be easily extended
 
 The $X_{\mathcal{A}_l}$ in the algorithm above denotes the sub-matrix of $X$ where the $j$-th column of $X$ is contained if and only if $j\in{\mathcal{A}_l}$. Any optimization algorithm can benefit from having a reduced input feature matrix $X_{\mathcal{A}_l}$. For example, the time cost of coordinate descent algorithm for Lasso penalized Cox regression \citep{simon2011regularization} will be nearly linear of the size of $\mathcal{A}_l$. Although the screening method is proposed for a sequence of $\lambda$ values, it can be easily applied to solve the problem at a single $\lambda$ value, by considering the sequence with length 2: $\lambda_{\max},\lambda$, since solution at $\lambda_{\max}$ has a simple closed form.
 
+In the algorithm $l^*$ can be simply always chosen to be $l-1$, which correspond to the method of sequential screening, using the latest previous solution in the sequence. The adaptive screening method proposes to reuse the same value of $l^*$ multiple times to reduce computation cost until it is beneficial to choose a new value and the detail of the algorithm is described in \citep{wang2021adaptive}.
+
 \section{Experiments}
 
-In this section, we will use simulated data to evaluate the performance of the proposed sequential safe rule for Lasso penalized Cox regression. The data is simulated from the model: for each subject $i\in\{1,2,...,n\}$, $t_i\sim \lfloor\max\{Weibull(\exp(\tilde{x}_i\beta),2), 5\}/c\rfloor $, independent of $y_i\sim binary(0.7)$ and subjects are independent. $\beta$ is a vector of $p$ coefficients with $s$ of them uniformly distributed between $(-b,b)$ and $p-s$ of them being $0$. Elements of $X$ are first simulated i.i.d from $Beta(\alpha,\alpha)$ and then standardized column-wise. The Lasso penalized Cox regression is solved along a path of $L$ $\lambda$ values equally spaced on log scale between $(\lambda_{\min},\lambda_{\max})$, where $\lambda_{\max}$ is determined by the data according to \eqref{eq:lammax}. 
+In this section, we will use simulated data to evaluate the performance of the sequential version of the proposed safe method for Lasso penalized Cox regression. The experiment on the sequential version eliminates other factors that can impact the performance and better illustrates the properties of the proposed safe rule. The data is simulated from the model: for each subject $i\in\{1,2,...,n\}$, $t_i\sim \lfloor\max\{Weibull(\exp(\tilde{x}_i\beta),2), 5\}/c\rfloor $, independent of $y_i\sim binary(0.7)$ and subjects are independent. $\beta$ is a vector of $p$ coefficients with $s$ of them uniformly distributed between $(-b,b)$ and $p-s$ of them being $0$. Elements of $X$ are first simulated i.i.d from $Beta(\alpha,\alpha)$ and then standardized column-wise. The Lasso penalized Cox regression is solved along a path of $L$ $\lambda$ values equally spaced on log scale between $(\lambda_{\min},\lambda_{\max})$, where $\lambda_{\max}$ is determined by the data according to \eqref{eq:lammax}. 
 
 By default, we set $n=1,000$, $p=3,000$, $c=0.5$, $s=10$, $b=1$, $\alpha=0.2$, $L=100$ and $\lambda_{\min}=0.05\lambda_{\max}$. In each experiment, one of the factors will vary and the performance will be compared in terms of the total power, which is defined as the total number of discards along the path over the total number of 0 coefficients along the path. We will use the experiment to study the how the factors affect the screening power and what are the limitations of the proposed screening method.
 
@@ -231,7 +223,6 @@ For a general class of Lasso penalized convex problems, the problem can be defin
 \begin{equation}
     \underset{\beta,\beta_0\in \mathbb{R}^p}{\mathrm{min}}l(X\beta+x_0^T\beta_0)+n\lambda||\beta||_1,
 \end{equation}
-
 where $l$ is closed convex twice differentiable function, $x_0$ is a known vector and $\beta_0$ is an unpenalized coefficient. Standard Lasso, Lasso penalized Cox regression, Lasso penalized Logistic regression and a number of Lasso type problems can all be expressed as the form above. One simple definition of the dual form is:
 
 \begin{gather}
@@ -239,7 +230,6 @@ where $l$ is closed convex twice differentiable function, $x_0$ is a known vecto
          \underset{\theta\in \mathbb{R}^n}{\mathrm{min}} g(\theta)\quad s.t.\quad x_0^T\theta=0,||X^T\theta||_\infty\leq n\lambda
     \end{aligned}
 \end{gather}
-
 where $g(\theta)=\max_z \theta^Tz-l(z)$ is the conjugate of $l$, which is also convex and $\theta$ is the $n$-dimensional dual variable.
 
 If $l$ can be written as sum of independent terms: $l(X\beta+x_0^T\beta_0)=\sum_i l_0(\tilde{x}_i^T\beta+x_{0i}\beta_0)$, then the dual function can be written as sum of independent univariate maximization problems: $g(\theta)=\sum_i\max_{z_i} \theta_iz_i-l_0(z_i)$. It is easier to obtain a closed form solution for such univariate problems and thus a closed form for dual function $g$. For example, a closed form can be obtained for standard Lasso and Lasso penalized Logistic regression. After a closed form is obtained, we can look at its second order expansion to find an $n$-dimensional ellipsoid bound for the dual variable.
@@ -336,11 +326,9 @@ Introducing a new variable $Z\equiv\mathbf{1}\beta^TX^T\in\mathbb{R}^{f\times n}
 \begin{equation}
     \label{eq:dual+z}
     \begin{gathered}
-    \underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1\\s.t.\quad Z=\mathbf{1}\beta^TX^T.
+    \underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-y^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1\\s.t.\quad Z=\mathbf{1}\beta^TX^T.
 \end{gathered}
 \end{equation}
-
-\pb{What's ``$b$''?  Should it be $y$?}
 
 Let $\langle\cdot,\cdot\rangle$ denote the matrix element-wise inner product, where $\langle A,B \rangle\equiv\sum_{k=1}^f\sum_{i=1}^nA_{ki}B_{ki}$.
 
@@ -349,22 +337,19 @@ Introducing the dual variable $U\in\mathbb{R}^{f\times n}$, the dual problem bec
 \begin{gather}
     \label{eq:dual+u}
     \begin{aligned}
-        &\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\langle U,\mathbf{1}\beta^TX^T-Z\rangle\\
-        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\langle U,\mathbf{1}\beta^TX^T\rangle-\langle U,Z\rangle\\
-        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-b^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\mathbf{1}^TUX\beta-\langle U,Z\rangle
+        &\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-y^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\langle U,\mathbf{1}\beta^TX^T-Z\rangle\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-y^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\langle U,\mathbf{1}\beta^TX^T\rangle-\langle U,Z\rangle\\
+        =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}\underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-y^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)+n\lambda||\beta||_1+\mathbf{1}^TUX\beta-\langle U,Z\rangle
     \end{aligned}    
 \end{gather}
-
-
 Minimizing with respect to $\beta$, the partial derivative is:
 
 \begin{equation}
     \label{eq:partialbeta}
-    \frac{\partial}{\partial\beta}(\cdot) =-X^Tb+X^TU^T\mathbf{1}+n\lambda\frac{\partial||\beta||_1}{\partial\beta}
+    \frac{\partial}{\partial\beta}(\cdot) =-X^Ty+X^TU^T\mathbf{1}+n\lambda\frac{\partial||\beta||_1}{\partial\beta}
 \end{equation}
-
 so the minimum is obtained iff $
-    ||X^TU^T\mathbf{1}-X^Tb||_\infty\leq n\lambda,$ and the problem becomes:
+    ||X^TU^T\mathbf{1}-X^Ty||_\infty\leq n\lambda,$ and the problem becomes:
 
 \begin{gather}
     \label{eq:dual-beta}
@@ -372,17 +357,15 @@ so the minimum is obtained iff $
         &\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}- \langle U,Z\rangle+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
         =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\underset{Z\in \mathbb{R}^{f\times n}}{\mathrm{min}}-\sum_{k=1}^f u_k^Tz_k +\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
         =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}\sum_{k=1}^f\underset{z_k\in \mathbb{R}^n}{\mathrm{min}}-u_k^Tz_k+d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
-        &s.t.\quad ||X^TU^T\mathbf{1}-X^Tb||_\infty\leq n\lambda.
+        &s.t.\quad ||X^TU^T\mathbf{1}-X^Ty||_\infty\leq n\lambda.
     \end{aligned}
 \end{gather}
-
 Take derivative with respect to $z_{ki}$:
 
 \begin{equation}
     \label{eq:partialz}
     \frac{\partial}{\partial z_{ki}}(\cdot)=-u_{ki}+\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}},
 \end{equation}
-
 and the minimum is obtained when $u_{ki}=\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}}$, which can be obtained iff:
 
 \begin{gather}
@@ -393,7 +376,6 @@ and the minimum is obtained when $u_{ki}=\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i
     &\sum_{i=1}^n u_{ki}=d_k,\,\forall k
 \end{aligned}
 \end{gather}
-
 or
 
 \begin{gather}
@@ -404,7 +386,6 @@ or
     &U\mathbf{1}=d
 \end{aligned}
 \end{gather}
-
 where $>$ is hold element-wise and $\circ$ is element-wise product. The problem becomes
 
 \begin{gather}
@@ -414,17 +395,16 @@ where $>$ is hold element-wise and $\circ$ is element-wise product. The problem 
         =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}-\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log u_{ki}-\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log\left(\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}\right)+\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log d_k+\sum_{k=1}^fd_k\log\left(\sum_{i=1}^n \delta_{ki} e^{z_{ki}}\right)\\
         =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{max}}-\sum_{k=1}^f\sum_{i=1}^nu_{ki}\log\frac{u_{ki}}{d_k}\\
         =&\underset{U\in \mathbb{R}^{f\times n}}{\mathrm{min}}\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}u_{ki}\log\frac{u_{ki}}{d_k}\\
-        &s.t.\quad ||X^TU^T\mathbf{1}-X^Tb||_\infty\leq n\lambda,\quad U+(1-\Delta)>0,\quad U\circ(1-\Delta)=0,\quad U\mathbf{1}=d.
+        &s.t.\quad ||X^TU^T\mathbf{1}-X^Ty||_\infty\leq n\lambda,\quad U+(1-\Delta)>0,\quad U\circ(1-\Delta)=0,\quad U\mathbf{1}=d.
     \end{aligned}
 \end{gather}
 
 Let $d^{1/2}=\{d_k^{1/2}\}_{k=1}^f$ and $D^{1/2}=diag(d^{1/2})$. Note that \begin{itemize}
-    \item $X^T(U^T-Y^T)D^{-1/2}d^{1/2}=X^T(U^T-Y^T)\mathbf{1}=X^TU^T\mathbf{1}-X^TY^T\mathbf{1}=X^TU^T\mathbf{1}-X^Tb$,
+    \item $X^T(U^T-Y^T)D^{-1/2}d^{1/2}=X^T(U^T-Y^T)\mathbf{1}=X^TU^T\mathbf{1}-X^TY^T\mathbf{1}=X^TU^T\mathbf{1}-X^Ty$,
     \item $D^{1/2}D^{-1/2}(U-Y)+Y+(1-\Delta)=U+(1-\Delta)$,
     \item $\left(D^{-1/2}(U-Y)\right)\circ(1-\Delta)=D^{-1/2}\left((U-Y)\circ(1-\Delta)\right)=D^{-1/2}\left(U\circ(1-\Delta)\right)=0$ iff $U\circ(1-\Delta)=0$,
     \item $D^{-1/2}(U-Y)\mathbf{1}=D^{-1/2}(U\mathbf{1}-Y\mathbf{1})=D^{-1/2}(U\mathbf{1}-d)=0$ iff $U\mathbf{1}-d=0$.
 \end{itemize}
-
 Letting $\Theta=D^{-1/2}(U-Y)$, then the dual problem \eqref{eq:dualu} can be expressed as in \eqref{eq:dualTheta} and the dual solution and primal solution can be connected by \eqref{eq:dualprimal}.
 
 
@@ -438,21 +418,18 @@ It is easy to see that $\mathcal{F}_{\lambda_1}\subseteq\mathcal{F}_{\lambda_0}$
     \item Each element in the inequality $D^{1/2}\Theta+Y+(1-\Delta)> 0$ is $d_k^{1/2}\Theta_{ki}+Y_{ki}+(1-\delta_{ki})>0$. Also, $Y_{ki}+(1-\delta_{ki})\geq 0$. If $\Theta_{\lambda_0,ki}>0$, $d_k^{1/2}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}>0.$ If $\Theta_{\lambda_0,ki}\leq0$, $d_k^{1/2}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}\Theta_{\lambda_0,ki}+Y_{ki}+(1-\delta_{ki})>0.$
     \item Other constraints obviously hold.
 \end{itemize}
-
 Therefore $\Theta_{\lambda_1},\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\in \mathcal{F}_{\lambda_1}$. By Lemma ~\ref{lem:1}:
 
 \begin{equation}
     \label{eq:thm2.1}
     \left\langle\nabla^2 g(\Theta''),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)^{\circ 2}\right\rangle=2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)-g(\Theta_{\lambda_1})+\left\langle\nabla g\left(\Theta_{\lambda_1}\right),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)\right\rangle\right),
 \end{equation}
-
  for some $\Theta''\in[\Theta_\lambda,\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}]\subseteq \mathcal{F}_\lambda$. Looking at the gradient term, the Slater's condition and thus the KKT condition for the dual problem \eqref{eq:dualTheta} holds at $\lambda_1$:
 
 \begin{equation}
     \label{eq:thm2.3}
     0=[\nabla g(\Theta_{\lambda_1})]_{ki}+\sum_{j=1}^p\eta^+_jX_{ij}d_k^{1/2}+\sum_{j=1}^p\eta^-_j(-X_{ij}d_k^{1/2})-\mu_{ki}d_k^{1/2}+\nu_{ki}(1-\delta_{ki})+\zeta_k,
 \end{equation}
-    
 $\forall i,k$, where $\eta^+,\eta^-\in\mathbb{R}^p_+,\{\mu\}_{k,i}\in\mathbb{R}^{f\times n}_+,\{\nu\}_{k,i}\in\mathbb{R}^{f\times n},\zeta\in\mathbb{R}^f$ are vectors depending on $\lambda_0$. Because $\{D^{1/2}\Theta+Y+(1-\Delta)>0\}$ is an open set and $\Theta_{\lambda_1}$ must be an interior point of it, by complementary slackness, $\mu_{ki}=0,\forall k,i$. Therefore, \eqref{eq:thm2.3} becomes $\forall i,k$:
 
 \begin{equation}
@@ -472,7 +449,6 @@ By complementary slackness again, $\eta^+_j>0$ only if $x_j^T\Theta_{\lambda_1}^
         &=n\lambda_1\left(\sum_{j:x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}\eta_j^-\right),
     \end{aligned}
 \end{gather}
-
 where the third equation holds because $\Theta_{\lambda_1}\in\mathcal{F}_{\lambda_1}$.
 
 Because $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\in \mathcal{F}_{\lambda_1}$, $\left|x_j^T\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}^Td^{1/2}\right|=\left|\sum_{i=1}^n\sum_{k=1}^fX_{ij}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}d_k^{1/2}\right|\leq n\lambda_1$. Similarly:
