@@ -5,7 +5,7 @@ The Cox proportional hazards regression (Cox regression) \citep{cox1972regressio
 
 However, when the number of features is large, Cox regression, like other regression methods, is prone to over-fitting. Moreover, when the number of features is greater then number of subjects, the maximum likelihood estimates are no longer unique. Finally, coefficients go to infinity in the case of complete or quasi-complete separation, an event that is increasingly likely to occur as the number of features increase. Regularization methods such as the lasso are effective at dealing with all of these problems \citep{tibshirani1997lasso}. Lasso-penalized Cox regression is not only more stable, but carries out automatic feature selection by setting many coefficients equal to zero, and is thus particularly attractive when dealing with high dimensional data. Typical practice is to solve the regression models over a path as the amount of penalization is decreases. Efficient algorithms for obtaining the solution path to Lasso-penalized Cox regression have been previously developed \citep{simon2011regularization}.
 
-In recent years, big data has become more easily accessible and there is an increasing need to study ultra high dimensional data with millions of features. This introduces great challenge to existing optimization methods. One promising technique to tackle this challenge is ``screening'', in which ``inactive'' features -- features whose coefficients are equal to zero -- are identified prior to fitting and ``discarded''. The discarded features can then be ignored during the optimization, which results in dimension reduction and improvements in computation time and memory cost. The ``strong'' screening rule \citep{Tibshirani2012} was derived in a general form for a class of Lasso type problems that includes Lasso penalized Cox regression. It discards a large proportion of features but requires a check afterwards to verify that no features were incorrectly discarded. Another type of screening is ``safe'' rules, which are mathematically guaranteed not to make a mistake and therefore don't require a check. Skipping the post-convergence checking stage saves time in general; however, safe rules are typically less powerful than strong rules in the sense of achieving less dimension reduction, and which of the two approaches is best in practice depends on a number of factors \pb{citation?}. For Lasso penalized Cox regression, the SAFE rule \citep{ko2017solving} is one existing safe rule. However, it has a mistake in the derivation and makes it unsafe in case with tied failure times. While there is no tied failure time, the SAFE rule is too weak to discard a decent proportion of features.
+In recent years, big data has become more easily accessible and there is an increasing need to study ultra high dimensional data with millions of features. This introduces great challenge to existing optimization methods. One promising technique to tackle this challenge is ``screening'', in which ``inactive'' features -- features whose coefficients are equal to zero -- are identified prior to fitting and ``discarded''. The discarded features can then be ignored during the optimization, which results in dimension reduction and improvements in computation time and memory cost. The ``strong'' screening rule \citep{Tibshirani2012} was derived in a general form for a class of Lasso type problems and the specific applications to Lasso penalized Cox regression are also studies \citep{simon2011regularization,yang2013}. It discards a large proportion of features but requires a check afterwards to verify that no features were incorrectly discarded. Another type of screening is ``safe'' rules, which are mathematically guaranteed not to make a mistake and therefore don't require a check. Skipping the post-convergence checking stage saves time in general; however, safe rules are typically less powerful than strong rules in the sense of achieving less dimension reduction, and which of the two approaches is best in practice depends on a number of factors \pb{citation?}. For Lasso penalized Cox regression, the SAFE rule \citep{ko2017solving} is one existing safe rule. However, it has a mistake in the derivation and makes it unsafe in case with tied failure times. While there is no tied failure time, the SAFE rule is too weak to discard a decent proportion of features.
 
 A new class of safe rules takes advantage of the path structure of the solution by utilizing the solution at previous penalty parameter values for screening and this extra information greatly increases the power. Sequential screening can be carried out with such safe rules by always utilizing the latest previous solution. Moreover, adaptive screening approaches \citep{wang2021adaptive} can also be built upon such safe rules: a previous solution can be safely reused multiple times to greatly reduce the computation cost of screening while having a small influence on the screening power. Safe rules that utilize previous solutions are both mathematically and computationally more complicated and previous studies have focused mainly on linear regression \citep{wang2013lasso}. Safe screening rules for Lasso-penalized Logistic regression \citep{wang2014safe} were first proposed in a manner that does not consider previous solutions but can be easily extended to utilize previous solutions. This suggests the possibility of extending this class of safe rules to other types of Lasso problems and then build a adaptive screening on top of it.
 
@@ -242,9 +242,11 @@ Because we have an $n\times f$-dimensional dual variable, an ellipsoid bound for
 
 By this argument, it will be less of a problem when $f$ is smaller. It is a reasonable scenario in practice, for example, when the failure times are recorded in units of large intervals (months, years) and there are a lot of tied failure times and a small number of unique failure times. We consider the experiment where the length of the intervals $c$ vary and because the observed times are generated between the fixed range$(0,5)$, the maximum of number of unique observed times will be decreasing in $c$. Because the sample size is limited and some samples are censored, the number of unique failure times $f$ may not reach the maximum but should be decreasing as well. The following plot summarize the effect of $c$ and the maximum number of unique observed times, on the total screening power.
 
-\begin{center}
+\begin{figure}[ht]
+    \centering
     \includegraphics[width=0.6\textwidth]{interval.pdf}
-\end{center}
+    \caption{Average proportion of feature discarded along the path by interval length $c$ and maximum number of unique observed times}
+\end{figure}
 
 Note that as $c$ increases and the failure times are cut into less larger intervals, the information in failure times decreases and thus the signal-to-noise ratio decreases. From this aspect, we should expect the screening power to decrease. From the plot, the screening power mostly increases, as $c$ increases and $f$ decreases, and the result supports our argument. In the end when $c$ is too large, the loss in signal dominates and leads to a drop in screening power.
 
@@ -259,9 +261,11 @@ The high dimensionality of the dual problem not only gives more freedom to the d
 
 The case when the freedom of $\Theta''$ has a small impact will be the case when ratio between them is close to 1. It is also a reasonable scenario in practice. For example, when a variable is binary and nearly balanced, the ratio between the two variances will be close to 1. We consider the experiment where the parameter $\alpha$ vary. Elements of $X$ are generated from $Beta(\alpha,\alpha)$ which is bounded from two ends. A small value of $\alpha$ will put more weights on two ends and the distribution will resemble a balanced binary distribution, while a larger value of $\alpha$ will lead to a unimodal bell shaped distribution that increases the difference between two weighted variances. Each $x_j$ is also standardized to make sure the difference is not caused by the scale. The following plot summarize the effect of $\alpha$ on the total screening power. The ratio in \eqref{eq:alpharatio} is also computed.
 
-\begin{center}
-    \includegraphics[width=0.6\textwidth]{alpha.pdf}
-\end{center}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.6\textwidth]{alpha.pdf}  
+    \caption{Average proportion of feature discarded along the path by shape $\alpha$ and ratio \eqref{eq:alpharatio}}
+\end{figure}
 
 The result shows that a distribution of $x_j$ that puts more weight on two ends (small $\alpha$) leads to much better performance, while a distribution of $x_j$ that puts more weight in the center (large $\alpha$) leads to worse performance.
 
@@ -269,9 +273,11 @@ The result shows that a distribution of $x_j$ that puts more weight on two ends 
 
 In this section, we consider the experiments that study the effect of other common factors in the simulation. The result is summarized in the following plot.
 
-\begin{center}
-    \includegraphics[width=\textwidth]{coxsim.pdf}
-\end{center}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=\textwidth]{coxsim.pdf}    
+    \caption{Average proportion of feature discarded along the path by common factors}
+\end{figure}
 
 On the first row, we vary the sample size $n$, the number of features $p$ and size of coefficients $b$ respectively. These factors does not have a significant impact on the performance, except in the extreme case when the $n$ or $b$ is extremely small and the signal in the data becomes too weak to provide useful information. On the second row, we first vary the number of nonzero coefficients $s$ and the screening methods performs better when $s$ is smaller, the underlying model is sparser and a Lasso penalty is more appropriate. Second, we vary the ratio $\lambda_{\min}/\lambda_{\max}$. The screening method is more powerful when this ratio is larger, which leads to a solution path with sparser solutions and closer spaced $\lambda$ values. Closer spaced $\lambda$ values means that the previous solution will be closer to the current solution and thus will be more helpful for screening at current solution. Last, we vary the number of $\lambda$ values in the solution path and the screening method is more powerful when $L$ is larger, which means $\lambda$ values are spaced closer.  
 
@@ -306,13 +312,15 @@ Adaptive & 1.302 (0.004) & 1.078 (0.002) & 1.255 (0.003) & \textbf{0.769 (0.003)
 
 The following plot shows the number of features discarded by sequential safe rule at each $\lambda$ value on each dataset. It shows that smaller number of unique failure times and distribution of features closer to balanced binary distribution both lead to stronger screening power of the sequential safe rule.
 
-\begin{center}
-    \includegraphics[width=0.6\textwidth]{shedden.pdf}
-\end{center}
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.7\textwidth]{shedden.pdf}    
+    \caption{Number of discarded feature along the path on different modifications}
+\end{figure}
 
 \section{Discussion}
 
-In this paper, we propose a novel sequential safe screening rule to help solving Lasso penalized Cox regression efficiently along a path of $\lambda$ values. It utilize previous solutions on the path to discard more features that will have 0 coefficients. We study factors that affect the power of the screening method and show that under some special cases it can discard a substantial proportion of features and can provide benefits in computation cost when incorporated into the adaptive screening framework. The results also show the possibility to derive a sequential safe screening method for Lasso type problems with nonstandard likelihood functions that are not separable and can provide insights for developing screening methods for other Lasso type problems.
+In this paper, we propose a novel safe screening rule to help solving Lasso penalized Cox regression efficiently along a path of $\lambda$ values. It can utilize previous solutions on the path to discard much more features that will have 0 coefficients. \comment{The rule is derived by looking at an augmented dual problem and constructing a closed form upper bound for the inner product between features and dual variables}. We study factors that affect the power of the screening method and show that under some special cases it can discard a substantial proportion of features and can provide benefits in computation cost when incorporated into the adaptive screening framework. The results also show the possibility to derive a safe screening method that can utilize previous solution in the path, for Lasso type problems with nonstandard likelihood functions that are not separable and can provide insights for developing screening methods for other Lasso type problems.
 
 \appendix
 \appendixpage
@@ -487,7 +495,6 @@ The Lagrangian of negative of \eqref{eq:bounddual} is:
         =&\left\langle\left(-\xi d^{1/2}x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right),\Theta\right\rangle+\frac{u}{2}\left(\langle\nabla^2 g(\Theta''),(\Theta-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0})^{\circ 2}\rangle-r^2(\lambda_1,\lambda_0)\right)
     \end{aligned}
 \end{gather}
-
 where $u\geq 0$, $V_1\in\mathbb{R}^{f\times n},v_2\in\mathbb{R}^f$ are Lagrangian multipliers. Because of strong duality of \eqref{eq:bounddual}, $-T_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ is equal to the maximization of $\eqref{eq:lem4.1}$. Take derivative with respect to $\Theta$ and set to 0:
 
 \begin{equation}
@@ -519,7 +526,6 @@ The dual problem is to maximize the dual function under $u> 0$. It is unconstrai
     \frac{\partial}{\partial v_2}=-\frac{1}{u}W\circ\left( -\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)\mathbf{1}=0.
     \end{cases}
 \end{equation}
-
 The first equation is automatically satisfied because the constraint $W\circ(1-\Delta)=0$. Note in \eqref{eq:lem4.4}, if $\delta_{ki}=1$, $[V_1\circ(1-\Delta)]_{ki}=0$ and if $\delta_{ki}=0$, $W_{ki}=0$, so $V_1\circ(1-\Delta)$ can be set to 0 without changing the value of $\tilde{g}(u_1,u_2,V_1,v_2)$.
 
 The second equation states that each row of the matrix $W\circ\left( -\xi d^{1/2} x_j^T+v_2\mathbf{1}^T\right)$ sums to 0, or in other word, each row of $W\circ\left(-\xi d^{1/2}x_j^T\right)$ is centered.
@@ -530,7 +536,6 @@ Combining \eqref{eq:lem4.4} and \eqref{eq:lem4.5} the dual problem  becomes maxi
     \label{eq:lem4.6}
     \bar{g}(u)=-\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}-\frac{1}{2}ur^2(\lambda_1,\lambda_0)-\frac{1}{2u}\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2.
 \end{equation}
- 
  Both $r^2(\lambda_1,\lambda_0)$ and $\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2$ are non-negative, so the maximum is easy to obtain, and negative of the maximum will be the maximum in \eqref{eq:tstar}.
 
 \item When $u=0$, to solve \eqref{eq:lem4.2} we need to solve $-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T=0.$ At the first unique failure time $k_0\in\{1,2,3,...,f\}$, all the subjects are at risk and $\delta_{k_0,i}=1,\forall i$. With out loss of generality, assume $k_0=1$. The first row of this equation becomes:
@@ -545,7 +550,6 @@ Let $P_{\mathbf{1}}=I_n-\mathbf{1_n}\mathbf{1_n}^T$ be the projection onto the o
     \label{eq:lem4.7}
      P_{\mathbf{1}}x_j=0,
 \end{equation}
-
 which means $x_j$ is a vector of a constant and contradicts the assumption. Thus $-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\neq0.$ $\tilde{g}(0,V_1,v2)\equiv\min_\Theta L(\Theta,0,V_1,v_2)=-\infty$ because $L(\Theta,0,u_2,V_1,v_2)$ is linear in $\Theta$ with nonzero coefficients. End of proof.
 
 
