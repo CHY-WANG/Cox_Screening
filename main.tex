@@ -51,67 +51,67 @@ for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt}, we can obtain a
         \textrm{where}\quad\Theta_{\lambda_{\max},ki}&=\frac{d_k^{1/2}\delta_{ki}}{\sum_{i'=1}^n\delta_{ki'}}-d_k^{-1/2}Y_{ki}.
     \end{aligned}
 \end{gather}
-Thus, when solving the problems on a grid of $L+1$ decreasing $\lambda$ values: $\lambda_0>\lambda_1>...>\lambda_L>0$, it makes sense to choose $\lambda_0= \lambda_{\max}$ to take advantage of this known solution. When applying an algorithm to solve the problems sequentially in decreasing order of $\lambda$, the solution at $\lambda_{l-1}$ will always be known before solving the problem at $\lambda_l$. In the remainder of this section, we derive a screening method for this pathwise structure. Without loss of generality, we will derive the screening method for the problem at $\lambda_1$ assuming the solution at $\lambda_0$ is known; the same method can be applied to any pair of $\lambda_{l}$ and $\lambda_{l-1}$ values.
+Thus, when solving the problems on a grid of $L+1$ decreasing $\lambda$ values: $\lambda_0>\lambda_1>...>\lambda_L>0$, it makes more sense to choose $\lambda_0=\lambda_{\max}$ to take advantage of the known solution. If an algorithm solves the problems sequentially in decreasing order of $\lambda$, then the solution at $\lambda_{l'}$ will be known before solving the problem at $\lambda_l$ if $l'<l$. In the rest of this section, we will derive a screening method for this pathwise approach. Also, without loss of generality, we will derive the screening method for the problem at $\lambda_1$ assuming the solution at $\lambda_0$ is known and can be used as a reference for screening. We refer to this pair as the \quotes{target} ($\lambda_1)$ and the \quotes{reference} ($\lambda_0$). The same method can be applied to any pair of $\lambda_{l}$ and $\lambda_{l'}$. For simplicity, we will use $\beta_l,\Theta_l$ to denote the solution, and $\mathcal{F}_l$ to denote the feasible set, at any $\lambda_l$.
 
-An important implication of the KKT conditions \eqref{eq:kkt} is that for any $\lambda$, if 
+An important implication of the KKT conditions \eqref{eq:kkt} is that for any $\lambda_1$, if 
 
 \begin{equation}
     \label{eq:disc_cond}
-    |x_j^T\Theta_{\lambda}^Td^{1/2}|<n\lambda,
+    |x_j^T\Theta_{1}^Td^{1/2}|<n\lambda_1,
 \end{equation}
-then we can safely conclude $\beta_{\lambda,j}=0$ and the corresponding $x_j$ can be discarded from the optimization at $\lambda$. Although the left hand side of \eqref{eq:disc_cond} is unknown at $\lambda_1$ until its solution is obtained, we can use the solution at $\lambda_{0}$ to derive a bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})\geq |x_j^T\Theta_{\lambda_1}^Td^{1/2}|$. Then, if $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})<n\lambda_1$ we can also safely conclude $\beta_{\lambda_1,j}=0$. To achieve the greatest improvement in speed, $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})$ should be as small as possible, as this will result in the greatest number of discarded features.
+then we can safely conclude $[\beta_1]_{j}=0$ and the corresponding $x_j$ can be discarded from the optimization at $\lambda_1$. Although the left hand side of \eqref{eq:disc_cond} is unknown until the solution is obtained, we can use the solution at $\lambda_{0}$ to derive a bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{0})\geq |x_j^T\Theta_{1}^Td^{1/2}|$. Then, if $T_j(\lambda_{1},\lambda_{0};\Theta_{0})<n\lambda_1$ we can also safely conclude $[\beta_1]_{j}=0$. To achieve the greatest improvement in speed, $T_j(\lambda_{1},\lambda_{0};\Theta_{0})$ should be as small as possible, as this will result in the greatest number of discarded features.
 
 \subsection{Dual Variable Bound}
 
 \pb{Seems like the notation here would be simpler / more consistent if we used $\Theta_0$, $\Theta_1$, $\mathcal{F}_0$, $\mathcal{F}_1$, and so on}
 
-The only unknown term in \eqref{eq:disc_cond} is $\Theta_{\lambda}$. In this section we will derive a bound for $\Theta_{\lambda_1}$ assuming the previous solution $\Theta_{\lambda_{0}}$ is known.
+The only unknown term in \eqref{eq:disc_cond} is $\Theta_{1}$. In this section we will derive a bound for $\Theta_{1}$ assuming the previous solution $\Theta_{0}$ is known.
 
 \begin{lemma}
     \label{lem:1}
-    For any $0<\lambda<\lambda'$, $\mathcal{F}_{\lambda}\subseteq\mathcal{F}_{\lambda'}$.
+    For any $0<\lambda_1<\lambda_0$, $\mathcal{F}_{1}\subseteq\mathcal{F}_{0}$.
 \end{lemma}
 
-The lemma also implies that $\mathcal{F}_{\lambda}\subseteq\mathcal{F}_{\infty}\equiv\{\Theta: D^{1/2}\Theta+Y+(1-\Delta)> 0,\Theta\circ(1-\Delta)=0, \Theta\mathbf{1}=0\}$.
+The lemma also implies that $\mathcal{F}_{1}\subseteq\mathcal{F}_{\infty}\equiv\{\Theta: D^{1/2}\Theta+Y+(1-\Delta)> 0,\Theta\circ(1-\Delta)=0, \Theta\mathbf{1}=0\}$.
 
 The dual function $g(\Theta)$ is twice differentiable in $\mathcal{F}_{\infty}$, so by its second order expansion we have:
 
 \begin{equation}
         \label{eq:expand}
-        g(\Theta_{\lambda_1})-g(\Theta_{\lambda_{0}})-\langle\nabla g(\Theta_{\lambda_{0}}),\Theta_{\lambda_{1}}-\Theta_{\lambda_{0}}\rangle=\frac{1}{2}\langle\nabla^2 g(\Theta''),(\Theta_{\lambda_{1}}-\Theta_{\lambda_{0}})^{\circ 2}\rangle,%\geq \frac{1}{2}||\Theta'-\Theta||_2^2,
+        g(\Theta_{1})-g(\Theta_{0})-\langle\nabla g(\Theta_{0}),\Theta_{1}-\Theta_{0}\rangle=\frac{1}{2}\langle\nabla^2 g(\Theta''),(\Theta_{1}-\Theta_{0})^{\circ 2}\rangle,%\geq \frac{1}{2}||\Theta'-\Theta||_2^2,
 \end{equation}
-for any $\lambda_1<\lambda_{0}\in (0,\lambda_\textrm{max}]$, where $(\cdot)^{\circ2}$ is element-wise square, $\langle A,B\rangle=\sum_{i=1}^n\sum_{i'=1}^mA_{ii'}B_{ii'}$ for any $n\times m$ matrices $A$ and $B$, and $\Theta''$ is some point on the line segment between $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$. Because $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$ are in the convex set $\mathcal{F}_{\lambda_{0}}$, $\Theta''$ is also in $\mathcal{F}_{\lambda_{0}}$ and thus in $\mathcal{F}_{\lambda_{\infty}}$. Note that
+for any $\lambda_1<\lambda_{0}\in (0,\lambda_\textrm{max}]$, where $(\cdot)^{\circ2}$ is element-wise square, $\langle A,B\rangle=\sum_{i=1}^n\sum_{i'=1}^mA_{ii'}B_{ii'}$ for any $n\times m$ matrices $A$ and $B$, and $\Theta''$ is some point on the line segment between $\Theta_{1}$ and $\Theta_{0}$. Because $\Theta_{1}$ and $\Theta_{0}$ are in the convex set $\mathcal{F}_{0}$, $\Theta''$ is also in $\mathcal{F}_{0}$ and thus in $\mathcal{F}_{\infty}$. Note that
 
 \begin{align*}
   [\nabla g(\Theta'')]_{ki} &= \delta_{ki}d_k^{1/2}\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta''_{ki}}{d_k^{1/2}}\right)+d_k^{1/2} \\
   [\nabla^2 g(\Theta'')]_{ki,ki} &= \frac{\delta_{ki}d_k}{Y_{ki}+d_k^{1/2}\Theta''_{ki}},
 \end{align*}
-and $\nabla^2 g(\Theta'')$ is a diagonal matrix. For convenience, we will instead use $[\nabla^2 g(\Theta'')]$ to denote the $f\times n$ matrix where $[\nabla^2 g(\Theta'')]_{ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta''_{ki}}$. Using this expansion, we can derive a bound for $\Theta_{\lambda_1}$.
+and $\nabla^2 g(\Theta'')$ is a diagonal matrix. For convenience, we will instead use $[\nabla^2 g(\Theta'')]$ to denote the $f\times n$ matrix where $[\nabla^2 g(\Theta'')]_{ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta''_{ki}}$. Using this expansion, we can derive a bound for $\Theta_{1}$.
 
 \begin{theorem}
     \label{thm:1}
     For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$ 
     \begin{equation}
-        \left\langle\nabla^2 g(\Theta''),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)^{\circ 2}\right\rangle\leq r^2(\lambda_1,\lambda_0)\equiv 2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)-g*\right),
+        \left\langle\nabla^2 g(\Theta''),\left(\Theta_{1}-\frac{\lambda_1}{\lambda_0}\Theta_{0}\right)^{\circ 2}\right\rangle\leq r^2(\lambda_1,\lambda_0)\equiv 2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{0}\right)-g*\right),
     \end{equation}
-    for some $\Theta''\in\mathcal{F}_{\lambda_{\infty}}$ and some $g^*\leq g(\Theta_{\lambda_1})$.
+    for some $\Theta''\in\mathcal{F}_{\infty}$ and any $g^*\leq g(\Theta_{1})$.
 \end{theorem}
 
-An obvious choice of $g^*$ is $g(\Theta_{\lambda_0})$ since
+An obvious choice of $g^*$ is $g(\Theta_{0})$ since
 
 \begin{equation*}
-  g(\Theta_{\lambda_1}) = \underset{\Theta\in \mathcal{F}_{\lambda_1}}{\mathrm{min}}g(\Theta)\geq\underset{\Theta\in \mathcal{F}_{\lambda_0}}{\mathrm{min}}g(\Theta) = g\left(\Theta_{\lambda_0}\right).
+  g(\Theta_{1}) = \underset{\Theta\in \mathcal{F}_{1}}{\mathrm{min}}g(\Theta)\geq\underset{\Theta\in \mathcal{F}_{0}}{\mathrm{min}}g(\Theta) = g\left(\Theta_{0}\right).
 \end{equation*}
-We propose to instead use $g^* = g(\Theta^*_{\lambda_1})$, where
+We propose to instead use $g^* = g(\Theta^*_{1})$, where
 
 \begin{gather}
     \label{eq:gstar}
     \begin{aligned}
-        &g(\Theta^*_{\lambda_1}) \equiv \min_\Theta g(\Theta)\\
-        s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
+        &g(\Theta^*_{1}) \equiv \min_\Theta g(\Theta)\\
+        s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
     \end{aligned}
 \end{gather}
-Note that $g(\Theta^*_{\lambda_1}) \leq g(\Theta_{\lambda_1})$ because compared to $\mathcal{F}_{\lambda_1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{\lambda_1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{\lambda_1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimal} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
+Note that $g(\Theta^*_{1}) \leq g(\Theta_{1})$ because compared to $\mathcal{F}_{1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the primal solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimal} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
 
 Theorem \ref{thm:1} says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. Note that the center and the size do not involve the unknown quantity $\Theta_{\lambda_1}$. Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
 
@@ -139,10 +139,10 @@ where $\xi = \pm 1$. Before deriving an upper bound for $T^*_{\xi,j}(\lambda_1,\
 
 \begin{lemma}
     \label{lem:2}
-    For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$, the strong duality holds for \eqref{eq:bounddual} and an optimal solution is admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
+    For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$, strong duality holds for \eqref{eq:bounddual} and an optimal solution is admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
 \end{lemma}
 
-The lemma says that to the maximum, which is the negative of minimum, of problem \eqref{eq:bounddual}, is the same as the maximum of its dual problem, solved in the following lemma.
+Lemma~\ref{lem:2} says that the solution to \eqref{eq:bounddual} is the same as its dual solution, given in Lemma~\ref{lem:3}.
 
 \begin{lemma}
     \label{lem:3}
@@ -160,9 +160,7 @@ The lemma says that to the maximum, which is the negative of minimum, of problem
     where $P_{\mathbf{1}}$ is the projection matrix onto $\mathbf{1}$.
 \end{lemma}
 
-$P_{\mathbf{1}}x_j=0$ implies that $X_{ij}$ have the constant value for any $i$. In practice, such a feature does not contain any information and should not be included in the features set, so $P_{\mathbf{1}}x_j\neq 0$ is a reasonable assumption.
-
-$T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ has the unknown quantity $W$ which depends on $\Theta''$. Again, we use the fact $\Theta''\in\mathcal{F}_\infty$ to construct an upper bound for $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ that does not depend on $\Theta''$.
+The condition $P_{\mathbf{1}}x_j \ne 0$ simply means that $X_{ij}$ is not constant across all subjects. This assumption can be made without loss of generality, since such features do not contain any information. Unfortunately, $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ still contains an unknown quantity, since $W$ depends on $\Theta''$. Thus, we again use the fact $\Theta''\in\mathcal{F}_\infty$ to construct an upper bound for $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ that does not depend on $\Theta''$.
 
 \begin{theorem}
     \label{thm:2}
@@ -178,17 +176,17 @@ $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ has the unknown qua
     \end{equation}
 \end{theorem}
 
-With this result, we can construct
+With this result, we finally arrive at an upper bound,
 
 \begin{equation}
     \label{eq:bound}
     T_j(\lambda_1,\lambda_0;\Theta_{\lambda_0})\equiv\max_{\xi=-1,1}\{T_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0})\},
 \end{equation}
-and it will be an upper bound for $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ that does not depend on any unknown quantities. 
+for $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ that does not depend on any unknown quantities. 
 
 \subsection{Safe Screening Rule of lasso Penalized Cox Regression}
 
-According to theorem \ref{thm:2} and \eqref{eq:bound}, it can be easily extended that for any $j$ and pair of $l^*<l$, if $T_j(\lambda_{l},\lambda_{l^*};\Theta_{\lambda_{l^*}})<n\lambda_l$ we can safely conclude $\beta_{\lambda_l,j}=0$ and $x_j$ can be removed from the optimization at $\lambda_l$. We formally a safe screening method for lasso penalized Cox regression that can improve the efficiency of any optimization algorithm for lasso penalized Cox regression, as described in the following algorithm. 
+Theorem~\ref{thm:2} and \eqref{eq:bound} imply that for any $j$ and pair of points on a solution path $l^*<l$, if $T_j(\lambda_{l},\lambda_{l^*};\Theta_{\lambda_{l^*}})<n\lambda_l$ then we can safely conclude $\beta_{\lambda_l,j}=0$ and $x_j$ can be removed from the optimization at $\lambda_l$. We formally present this safe screening method, which can be used in combination with any optimization algorithm for lasso penalized Cox regression, in the following algorithm.
 
 \begin{algorithm}[H]
     \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}\SetKwInOut{Pre}{Pre-compute}\SetKwInOut{Initialize}{Initialize}\SetKwInOut{Choose}{Choose}
@@ -209,9 +207,9 @@ According to theorem \ref{thm:2} and \eqref{eq:bound}, it can be easily extended
     \Output{$\{\beta_{\lambda_{l}}\}_{l=0}^L$}
 \end{algorithm}
 
-The $X_{\mathcal{A}_l}$ in the algorithm above denotes the sub-matrix of $X$ where the $j$-th column of $X$ is contained if and only if $j\in{\mathcal{A}_l}$. Any optimization algorithm can benefit from having a reduced input feature matrix $X_{\mathcal{A}_l}$. For example, the time cost of coordinate descent algorithm for lasso penalized Cox regression \citep{simon2011regularization} will be nearly linear of the size of $\mathcal{A}_l$. Although the screening method is proposed for a sequence of $\lambda$ values, it can be easily applied to solve the problem at a single $\lambda$ value, by considering the sequence with length 2: $\lambda_{\max},\lambda$, since solution at $\lambda_{\max}$ has a simple closed form.
+The $X_{\mathcal{A}_l}$ in the algorithm above denotes the sub-matrix of $X$ where the $j$-th column of $X$ is contained if and only if $j\in{\mathcal{A}_l}$. Any optimization algorithm can benefit from having a reduced input feature matrix $X_{\mathcal{A}_l}$. For example, the time cost of coordinate descent algorithm for lasso penalized Cox regression \citep{simon2011regularization} is roughly linear with the size of $\mathcal{A}_l$. Although the screening method is proposed for a sequence of $\lambda$ values, it can also be applied to solve the problem at a single $\lambda$ value by considering the sequence with length 2: $\lambda_{\max},\lambda$, since the solution at $\lambda_{\max}$ always has a simple closed form.
 
-In the algorithm $l^*$ can be simply always chosen to be $l-1$, which correspond to the method of sequential screening, using the latest previous solution in the sequence. The adaptive screening method proposes to reuse the same value of $l^*$ multiple times to reduce computation cost until it is beneficial to choose a new value and the detail of the algorithm is described in \citep{wang2021adaptive}.
+The algorithm presented here can be used for sequential screening, in which one always uses the latest previous solution, by always setting $l^*$ to be $l-1$ over the entire solution path. A more efficient approach, however, is adaptive screening, which reuses the same value of $l^*$ multiple times to reduce computation costs and waits until it is beneficial to choose a new value. Adaptive screening is described in detail in \citep{wang2021adaptive}.
 
 \section{Experiments}
 
