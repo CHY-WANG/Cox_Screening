@@ -13,14 +13,14 @@ In this paper, we develop a novel safe rule for lasso penalized Cox regression t
 \section{Screening Method}
 \subsection{Problem Definition}
 
-In a survival analysis, we collect data on $n$ subjects of the form $\{(t_i,y_i,\tilde{x}_i)\}_{i=1}^n$, where $t_i$ is the observed time and is a time of failure if $y_i=1$ or time of right censoring if $y_i=0$ (failure event happens at some unknown time after $t_i$). $\tilde{x}_i=(X_{i1},X_{i2},...,X_{ip})$ is a vector of $p$ features. With these observed data, we can define the following quantities. Let $X=[\tilde{x}_1,\tilde{x}_2,...,\tilde{x}_n]^T=[x_1,x_2,...,x_p]$ denote the $n\times p$ feature matrix. Suppose there are $f$ unique times when at least one failure happens. Let  $\Delta=[\Delta_1,\Delta_2,...,\Delta_f]^T=\{\delta_{ki}\}\in\{0,1\}^{f\times n}$ denote the at-risk matrix, where $\delta_{ki}=1$ if subject $i$ is at risk at the $k$-th unique failure time. Let $Y$ denote the $f\times n$ response matrix where $Y_{ki}=1$ if subject $i$ died at the $k$-th unique failure time and $Y_{ki}=0$ otherwise. We have $y=Y^T\mathbf{1}$ and $d=Y\mathbf{1}$ is the $f\times 1$ number of deaths vector, where $y$ is the $n\times1$ response vector of elements $y_i$ and $d$ is the $n\times1$ vector of elements $d_k>0$, the number of failures at $k$-th unique failure time.
+In a survival analysis, we collect data on $n$ subjects of the form $\{(t_i,y_i,\tilde{x}_i)\}_{i=1}^n$, where $t_i$ is the observed time on study and represents the time of failure if $y_i=1$ or the time of right censoring if $y_i=0$ (i.e., the failure happens at some unknown time after $t_i$), and $\tilde{x}_i=(X_{i1},X_{i2},...,X_{ip})$ is a vector of $p$ features. With these observed data, we can define the following quantities. Let $X=[\tilde{x}_1,\tilde{x}_2,...,\tilde{x}_n]^T=[x_1,x_2,...,x_p]$ denote the $n\times p$ feature matrix. Suppose there are $f$ unique times when at least one failure happens. Let  $\Delta=[\Delta_1,\Delta_2,...,\Delta_f]^T=\{\delta_{ki}\}\in\{0,1\}^{f\times n}$ denote the at-risk matrix, where $\delta_{ki}=1$ if subject $i$ is at risk at the $k$-th unique failure time. Let $Y$ denote the $f\times n$ response matrix where $Y_{ki}=1$ if subject $i$ died at the $k$-th unique failure time and $Y_{ki}=0$ otherwise. Finally, letting $y$ denote the $n \times 1$ response vector of elements $y_i$ and $d$ the $n \times 1$ vector of elements $d_k>0$, where $d_k$ denotes the number of failures at unique failure time $k$, we have $y=Y^T\mathbf{1}$ and $d=Y\mathbf{1}$.
 
-The lasso penalized Cox regression, using Breslow approximation \citep{breslow1974covariance} for tied failure times, is the optimization of the following problem:
+The lasso penalized Cox regression, with the Breslow approximation \citep{breslow1974covariance} for tied failure times, consists of the optimization problem
 \begin{equation}
     \label{eq:cox}
     \underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-y^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{\tilde{x}_i^T\beta}\right)+n\lambda||\beta||_1,
 \end{equation}
-where $\beta\in\mathbb{R}^p$ is the coefficient vectors for the $p$ features and $\lambda>0$ is the penalty parameter that controls the size of lasso penalty. The dual form of \eqref{eq:cox} is given by (see appendix for details):
+where $\beta\in\mathbb{R}^p$ is the coefficient vector corresponding to the $p$ features and $\lambda>0$ is the regularization parameter that controls the size of lasso penalty. A dual form of \eqref{eq:cox} is given by (see Appendix~\ref{sec:dual} for details):
 \begin{gather}
         \label{eq:dualTheta}
         \underset{\Theta\in \mathbb{R}^{f\times n}}{\mathrm{min}}g(\Theta)\equiv\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}(Y_{ki}+d_k^{1/2}\Theta_{ki})\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta_{ki}}{d_k^{1/2}}\right)\\
@@ -28,13 +28,13 @@ where $\beta\in\mathbb{R}^p$ is the coefficient vectors for the $p$ features and
             &||X^T\Theta^Td^{1/2}||_\infty\leq n\lambda,\quad D^{1/2}\Theta+Y+(1-\Delta)> 0,\\& \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0\}\nonumber,
         \end{aligned}
 \end{gather}
-where $\Theta\in \mathbb{R}^{f\times n}$ is the dual variable, $D=diag(d)$, $0\log 0\equiv0$, ``$>$'' is element wise greater-than, $(\cdot)^{1/2}$ is the element wise square root and $\circ$ is element wise product. The dual problem becomes the minimization of the convex function $g(\Theta)$ within a convex feasible set $\mathcal{F}_\lambda$. Let $\beta_\lambda$ denote the solution to the primal problem at penalty parameter value $\lambda$ and $\Theta_{\lambda}$ denote the corresponding dual solution. The primal solution and dual solution can be connected by
+where $\Theta\in \mathbb{R}^{f\times n}$ is the dual variable, $D=\textrm{diag}(d)$, ``$>$'' is element wise greater-than, $(\cdot)^{1/2}$ is the element wise square root, $\circ$ is element wise product, and we define $0\log 0$ to be 0. The dual problem therefore consists of minimizing the convex function $g(\Theta)$ within a convex feasible set $\mathcal{F}_\lambda$. Letting $\beta_\lambda$ denote the solution to the primal problem at penalty parameter value $\lambda$ and $\Theta_{\lambda}$ denote the corresponding dual solution, the primal solution and dual solution are connected by
 
 \begin{equation}
     \label{eq:dualprimal}
     \Theta_{\lambda,ki}=d_k^{1/2}\delta_{ki}\frac{e^{\tilde{x}_i\beta_\lambda}}{\sum_{i'=1}^n\delta_{ki'}e^{\tilde{x}_{i'}\beta_\lambda}}-d_k^{-1/2}Y_{ki},
 \end{equation}
-for any $k,i$, and the KKT conditions for the primal problem~\eqref{eq:cox} can be expressed as:
+for all $k$ and $i$. Furthermore, the KKT conditions for the primal problem~\eqref{eq:cox} can be expressed as:
 
 \begin{gather}
     \label{eq:kkt}
@@ -42,26 +42,28 @@ for any $k,i$, and the KKT conditions for the primal problem~\eqref{eq:cox} can 
     & \beta_{\lambda,j}\neq0\implies x_j^T\Theta_\lambda^Td^{1/2}= n\lambda\textit{sign}(\beta_{\lambda,j}).
     \end{aligned}
 \end{gather}
-for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt} we have a trivial closed form solution for the problem at some $\lambda$ values:
+for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt}, we can obtain a closed form solution for the problem at large $\lambda$ values:
 
 \begin{gather}
     \label{eq:lammax}
     \begin{aligned}
-        \beta_\lambda=0\iff \lambda \geq \lambda_{\max}\equiv \max_j \left|x_j^T\Theta^T_{\lambda_{\max}}d^{1/2}\right|/n,\\
-        \textit{where}\quad\Theta_{\lambda_{\max},ki}=\frac{d_k^{1/2}\delta_{ki}}{\sum_{i'=1}^n\delta_{ki'}}-d_k^{-1/2}Y_{ki}.
+        \beta_\lambda=0\iff \lambda \geq \lambda_{\max}&\equiv \max_j \left|x_j^T\Theta^T_{\lambda_{\max}}d^{1/2}\right|/n,\\
+        \textrm{where}\quad\Theta_{\lambda_{\max},ki}&=\frac{d_k^{1/2}\delta_{ki}}{\sum_{i'=1}^n\delta_{ki'}}-d_k^{-1/2}Y_{ki}.
     \end{aligned}
 \end{gather}
-Thus, when solving the problems on a grid of $L+1$ decreasing $\lambda$ values: $\lambda_0>\lambda_1>...>\lambda_L>0$, it makes more sense to choose $\lambda_0= \lambda_{\max}$ to take advantage of the known solution. If an algorithm solve the problems sequentially in decreasing order of $\lambda$, then solution at $\lambda_{l-1}$ will be known before solving the problem at $\lambda_l$. In the rest of the paper, we will derive screening method for such a path-wise structure. Also, without loss of generality, we will derive the screening method for the problem at $\lambda_1$ assuming the solution at $\lambda_0$ is known, the same method can be applied to any pair of $\lambda_{l}$ and $\lambda_{l-1}$.
+Thus, when solving the problems on a grid of $L+1$ decreasing $\lambda$ values: $\lambda_0>\lambda_1>...>\lambda_L>0$, it makes sense to choose $\lambda_0= \lambda_{\max}$ to take advantage of this known solution. When applying an algorithm to solve the problems sequentially in decreasing order of $\lambda$, the solution at $\lambda_{l-1}$ will always be known before solving the problem at $\lambda_l$. In the remainder of this section, we derive a screening method for this pathwise structure. Without loss of generality, we will derive the screening method for the problem at $\lambda_1$ assuming the solution at $\lambda_0$ is known; the same method can be applied to any pair of $\lambda_{l}$ and $\lambda_{l-1}$ values.
 
-The KKT conditions \eqref{eq:kkt} also say that for any $\lambda$ if 
+An important implication of the KKT conditions \eqref{eq:kkt} is that for any $\lambda$, if 
 
 \begin{equation}
     \label{eq:disc_cond}
     |x_j^T\Theta_{\lambda}^Td^{1/2}|<n\lambda,
 \end{equation}
-we can safely conclude $\beta_{\lambda,j}=0$ and the corresponding $x_j$ can be discarded for the optimization at $\lambda$. Although the left hand side of \eqref{eq:disc_cond} is unknown at $\lambda_1$ until the solution is obtained at $\lambda_1$, we can use the solution at $\lambda_{0}$ to derive some bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})\geq |x_j^T\Theta_{\lambda_1}^Td^{1/2}|$ and then if $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})<n\lambda_1$ we can also safely conclude $\beta_{\lambda_1,j}=0$. The goal is to find a smaller $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})$ to make more discards.
+then we can safely conclude $\beta_{\lambda,j}=0$ and the corresponding $x_j$ can be discarded from the optimization at $\lambda$. Although the left hand side of \eqref{eq:disc_cond} is unknown at $\lambda_1$ until its solution is obtained, we can use the solution at $\lambda_{0}$ to derive a bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})\geq |x_j^T\Theta_{\lambda_1}^Td^{1/2}|$. Then, if $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})<n\lambda_1$ we can also safely conclude $\beta_{\lambda_1,j}=0$. To achieve the greatest improvement in speed, $T_j(\lambda_{1},\lambda_{0};\Theta_{\lambda_0})$ should be as small as possible, as this will result in the greatest number of discarded features.
 
 \subsection{Dual Variable Bound}
+
+\pb{Seems like the notation here would be simpler / more consistent if we used $\Theta_0$, $\Theta_1$, $\mathcal{F}_0$, $\mathcal{F}_1$, and so on}
 
 The only unknown term in \eqref{eq:disc_cond} is $\Theta_{\lambda}$. In this section we will derive a bound for $\Theta_{\lambda_1}$ assuming the previous solution $\Theta_{\lambda_{0}}$ is known.
 
@@ -78,59 +80,66 @@ The dual function $g(\Theta)$ is twice differentiable in $\mathcal{F}_{\infty}$,
         \label{eq:expand}
         g(\Theta_{\lambda_1})-g(\Theta_{\lambda_{0}})-\langle\nabla g(\Theta_{\lambda_{0}}),\Theta_{\lambda_{1}}-\Theta_{\lambda_{0}}\rangle=\frac{1}{2}\langle\nabla^2 g(\Theta''),(\Theta_{\lambda_{1}}-\Theta_{\lambda_{0}})^{\circ 2}\rangle,%\geq \frac{1}{2}||\Theta'-\Theta||_2^2,
 \end{equation}
-for any $\lambda_1<\lambda_{0}\in (0,\lambda_{max}]$, where $(\cdot)^{\circ2}$ is element-wise square, $\langle A,B\rangle=\sum_{i=1}^n\sum_{i'=1}^mA_{ii'}B_{ii'}$ for any $n\times m$ matrix $A,B$, and $\Theta''$ is some point on the line segment between $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$. Because $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$ are in the convex set $\mathcal{F}_{\lambda_{0}}$, $\Theta''$ is also in $\mathcal{F}_{\lambda_{0}}$ and thus in $\mathcal{F}_{\lambda_{\infty}}$. Note $[\nabla g(\Theta'')]_{ki}=\delta_{ki}d_k^{1/2}\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta''_{ki}}{d_k^{1/2}}\right)+d_k^{1/2}$, $[\nabla^2 g(\Theta'')]_{ki,ki}=\frac{\delta_{ki}d_k}{Y_{ki}+d_k^{1/2}\Theta''_{ki}}$ and $\nabla^2 g(\Theta'')$ is a diagonal matrix. For convenience, we will instead use $[\nabla^2 g(\Theta'')]$ to denote the $f\times n$ matrix where $[\nabla^2 g(\Theta'')]_{ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta''_{ki}}$. Using this expansion, we can derive a bound for $\Theta_{\lambda_1}$.
+for any $\lambda_1<\lambda_{0}\in (0,\lambda_\textrm{max}]$, where $(\cdot)^{\circ2}$ is element-wise square, $\langle A,B\rangle=\sum_{i=1}^n\sum_{i'=1}^mA_{ii'}B_{ii'}$ for any $n\times m$ matrices $A$ and $B$, and $\Theta''$ is some point on the line segment between $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$. Because $\Theta_{\lambda_{1}}$ and $\Theta_{\lambda_{0}}$ are in the convex set $\mathcal{F}_{\lambda_{0}}$, $\Theta''$ is also in $\mathcal{F}_{\lambda_{0}}$ and thus in $\mathcal{F}_{\lambda_{\infty}}$. Note that
 
-
+\begin{align*}
+  [\nabla g(\Theta'')]_{ki} &= \delta_{ki}d_k^{1/2}\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta''_{ki}}{d_k^{1/2}}\right)+d_k^{1/2} \\
+  [\nabla^2 g(\Theta'')]_{ki,ki} &= \frac{\delta_{ki}d_k}{Y_{ki}+d_k^{1/2}\Theta''_{ki}},
+\end{align*}
+and $\nabla^2 g(\Theta'')$ is a diagonal matrix. For convenience, we will instead use $[\nabla^2 g(\Theta'')]$ to denote the $f\times n$ matrix where $[\nabla^2 g(\Theta'')]_{ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta''_{ki}}$. Using this expansion, we can derive a bound for $\Theta_{\lambda_1}$.
 
 \begin{theorem}
     \label{thm:1}
-    For any $\lambda_1<\lambda_{0}\in (0,\lambda_{max}]$ 
+    For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$ 
     \begin{equation}
         \left\langle\nabla^2 g(\Theta''),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)^{\circ 2}\right\rangle\leq r^2(\lambda_1,\lambda_0)\equiv 2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)-g*\right),
     \end{equation}
     for some $\Theta''\in\mathcal{F}_{\lambda_{\infty}}$ and some $g^*\leq g(\Theta_{\lambda_1})$.
 \end{theorem}
 
-An obvious choice of $g^*$ is $g(\Theta_{\lambda_0})$ since $g(\Theta_{\lambda_1})\equiv\underset{\Theta\in \mathcal{F}_{\lambda_1}}{\mathrm{min}}g(\Theta)\geq\underset{\Theta\in \mathcal{F}_{\lambda_0}}{\mathrm{min}}g(\Theta)\equiv g\left(\Theta_{\lambda_0}\right)$. We propose to instead use 
+An obvious choice of $g^*$ is $g(\Theta_{\lambda_0})$ since
+
+\begin{equation*}
+  g(\Theta_{\lambda_1}) = \underset{\Theta\in \mathcal{F}_{\lambda_1}}{\mathrm{min}}g(\Theta)\geq\underset{\Theta\in \mathcal{F}_{\lambda_0}}{\mathrm{min}}g(\Theta) = g\left(\Theta_{\lambda_0}\right).
+\end{equation*}
+We propose to instead use $g^* = g(\Theta^*_{\lambda_1})$, where
 
 \begin{gather}
     \label{eq:gstar}
     \begin{aligned}
-        &g(\Theta^*_{\lambda_1})\equiv\min_\Theta g(\Theta)\\
+        &g(\Theta^*_{\lambda_1}) \equiv \min_\Theta g(\Theta)\\
         s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
     \end{aligned}
 \end{gather}
-We have $g(\Theta^*_{\lambda_1})\leq g(\Theta_{\lambda_1})$ because compared to $\mathcal{F}_{\lambda_1}$, \eqref{eq:gstar} removes some constraints and its feasible set contains $\mathcal{F}_{\lambda_1}$. The problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $j$ that satisfy $|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0$, or in other word, have non-zero coefficients $\lambda_0$. Because the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{\lambda_1})$ will not introduce extra cost.
+Note that $g(\Theta^*_{\lambda_1}) \leq g(\Theta_{\lambda_1})$ because compared to $\mathcal{F}_{\lambda_1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{\lambda_1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{\lambda_0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{\lambda_1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimal} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
 
-Theorem \ref{thm:1} says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. The center and the size can be computed without the unknown quantity $\Theta_{\lambda_1}$. 
-
- Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
+Theorem \ref{thm:1} says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. Note that the center and the size do not involve the unknown quantity $\Theta_{\lambda_1}$. Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
 
 \subsection{Upper bound via Solving Bounded Optimization}
 
-In this section, we are going to derive the upper bound $T_j(\lambda_1,\lambda_0;\Theta_{\lambda_0})$ for $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$, using the bound in Theorem ~\ref{thm:1} and the fact $\Theta''\in\mathcal{F}_{\infty}$.
+In this section, we derive the upper bound $T_j(\lambda_1,\lambda_0;\Theta_{\lambda_0})$ for $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ using the bound in Theorem~\ref{thm:1} and the fact that $\Theta''\in\mathcal{F}_{\infty}$.
 
-If $\Theta''$ were known, then by Theorem ~\ref{thm:1} and the fact that $\Theta_{\lambda_1}$ is in the feasible set $\mathcal{F}_{\lambda_1}$, $\Theta_{\lambda_1}$ is bounded in the convex compact set
+If $\Theta''$ were known, then by Theorem~\ref{thm:1} and the fact that $\Theta_{\lambda_1}$ is in the feasible set $\mathcal{F}_{\lambda_1}$, $\Theta_{\lambda_1}$ is bounded in the convex compact set
 
  \begin{equation}
      \mathcal{A}(\lambda_1,{\lambda_0},\Theta'')\equiv\{\Theta:\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle\leq r^2(\lambda_1,\lambda_0),\,\Theta\circ(1-\Delta)=0,\, \Theta\mathbf{1}=0\}.
  \end{equation}
-$|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ is bounded above by:
+Now, $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ is bounded above by:
 
 \begin{equation}
-    T^*_{j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} |x_j^T\Theta^T d^{1/2}|.
+    T^*_{j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} |x_j^T\Theta^T d^{1/2}|;
 \end{equation}
-This problem is equivalent to the maximum of the 2 sub-problems:
+this problem is equivalent to the maximum of the 2 sub-problems:
 
 \begin{equation}
     \label{eq:bounddual}
     T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} \xi x_j^T\Theta^T d^{1/2},
 \end{equation}
-where $\xi=-1,1$.
+where $\xi = \pm 1$. Before deriving an upper bound for $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')$, we first establish two supporting lemmas.
 
 \begin{lemma}
     \label{lem:2}
-    For any $\lambda_1<\lambda_{0}\in (0,\lambda_{max}]$, the strong duality holds for \eqref{eq:bounddual} and an optimal solution is admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
+    For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$, the strong duality holds for \eqref{eq:bounddual} and an optimal solution is admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
 \end{lemma}
 
 The lemma says that to the maximum, which is the negative of minimum, of problem \eqref{eq:bounddual}, is the same as the maximum of its dual problem, solved in the following lemma.
@@ -326,7 +335,7 @@ In this paper, we propose a novel safe screening rule to help solving lasso pena
 
 
 \section{Derivation of the Dual Problem}
-
+\label{sec:dual}
 
 Introducing a new variable $Z\equiv\mathbf{1}\beta^TX^T\in\mathbb{R}^{f\times n}$, which means $z_{ki}\equiv\tilde{x}_i^T\beta,\,\forall k$, then the problem \eqref{eq:cox} becomes:
 
