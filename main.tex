@@ -100,7 +100,7 @@ We propose to instead use $g^* = g(\Theta^*_{1})$, where
         s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
     \end{aligned}
 \end{gather}
-Note that $g(\Theta^*_{1}) \leq g(\Theta_{1})$ because compared to $\mathcal{F}_{1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. After solving the primal problem, $\Theta_1^*$ and thus $g(\Theta_1^*)$ can be easily computed by \eqref{eq:dualprimalcox}. Moreover, the primal solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimalcox} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
+Note that $g(\Theta^*_{1}) \leq g(\Theta_{1})$ because compared to $\mathcal{F}_{1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem corresponding to \eqref{eq:gstar} can be optimized quickly and \eqref{eq:dualprimalcox} used to compute $\Theta_1^*$ and $g(\Theta_1^*)$. Moreover, the primal solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{1})$ does not introduce any extra cost.
 
 Theorem \ref{thm:1} says $\Theta_{1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. Note that the center and the size do not involve the unknown quantity $\Theta_{1}$. Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
 
@@ -121,14 +121,14 @@ this problem is equivalent to the maximum of the 2 sub-problems:
     \label{eq:bounddual}
     T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,\lambda_0,\Theta'')} \xi x_j^T\Theta^T d^{1/2},
 \end{equation}
-where $\xi = \pm 1$. Before deriving an upper bound for $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')$, we first establish two supporting lemmas.
+where $\xi = \pm 1$. Before deriving an upper bound for $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')$, we first establish two supporting lemmas, proofs of which are found in Appendices~\ref{sec:lem2proof} and \ref{sec:lem3proof}.
 
 \begin{lemma}
     \label{lem:2}
     For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$, strong duality holds for \eqref{eq:bounddual} and an optimal solution is admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
 \end{lemma}
 
-Lemma~\ref{lem:2} says that the solution to \eqref{eq:bounddual} is the same as its dual solution, given in Lemma~\ref{lem:3}. \comment{This does not sound correct. Primal and dual problems solve for different variables. It is the maximum and minimum that are the same.}
+Lemma~\ref{lem:2} implies that there is no duality gap, and thus, that $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')$ can be found by solving its dual formulation, which is given in Lemma~\ref{lem:3}. \pb{Is this better? My problem with the original wording is that it isn't really clear what minimization problem you're talking about unless you read the appendix.}
 
 \begin{lemma}
     \label{lem:3}
@@ -199,9 +199,9 @@ The algorithm presented here can be used for sequential screening, in which one 
 
 \section{Experiments}
 
-In this section, we will use simulated data to evaluate the performance of the sequential version of the proposed safe method for lasso penalized Cox regression. The experiment on the sequential version eliminates other factors that can impact the performance and better illustrates the properties of the proposed safe rule. The data is simulated from the model: for each subject $i\in\{1,2,...,n\}$, $t_i\sim \lfloor\max\{Weibull(\exp(\tilde{x}_i\beta),2), 5\}/c\rfloor $, independent of $y_i\sim binary(0.7)$ and subjects are independent. $\beta$ is a vector of $p$ coefficients with $s$ of them uniformly distributed between $(-b,b)$ and $p-s$ of them being $0$. Elements of $X$ are first simulated i.i.d from $Beta(\alpha,\alpha)$ and then standardized column-wise. The lasso penalized Cox regression is solved along a path of $L$ $\lambda$ values equally spaced on log scale between $(\lambda_{\min},\lambda_{\max})$, where $\lambda_{\max}$ is determined by the data according to \eqref{eq:lammax}. 
+In this section, we use simulated data to evaluate the performance of the sequential version of the proposed safe method for lasso penalized Cox regression. Restricting attention to the sequential version eliminates other implementation factors that affect performance and better illustrates the properties of the proposed safe rule itself. The data is simulated from the following model: for each subject $i\in\{1,2,...,n\}$, $t_i \sim \lfloor\max\{\textnormal{Weibull}(\exp(\tilde{x}_i^T \beta),2), 5\}/c\rfloor $, independent of $y_i \sim \textnormal{Bernoulli}(0.7)$ and subjects are mutually independent. The first $s$ elements of the coefficient vector $\beta$ are uniformly distributed between $(-b,b)$ and the remaining $p-s$ elements are $0$. Elements of $X$ are first simulated i.i.d from $\textnormal{Beta}(\alpha,\alpha)$ and then standardized column-wise. The lasso penalized Cox regression model is solved along a path of $L$ values of $\lambda$, equally spaced on log scale between $(\lambda_{\min},\lambda_{\max})$, where $\lambda_{\max}$ is determined by the data according to \eqref{eq:lammax}. 
 
-By default, we set $n=1,000$, $p=3,000$, $c=0.5$, $s=10$, $b=1$, $\alpha=0.2$, $L=100$ and $\lambda_{\min}=0.05\lambda_{\max}$. In each experiment, one of the factors will vary and the performance will be compared in terms of the total power, which is defined as the total number of discards along the path over the total number of 0 coefficients along the path. We will use the experiment to study the how the factors affect the screening power and what are the limitations of the proposed screening method.
+By default, we set $n=1,000$, $p=3,000$, $c=0.5$, $s=10$, $b=1$, $\alpha=0.2$, $L=100$ and $\lambda_{\min}=0.05\lambda_{\max}$. In each experiment, one of the factors will vary and the performance will be compared in terms of the total power, which is defined as the total number of discarded features over the path over the total number of 0 coefficients along the path. \pb{I find this a little ambiguous. It's not really the ``total number of discarded features'', is it? Because a feature can be discarded many times and counted many times? I think we might need an equation with a double sum; describing this in words just seems too vague.} These experiments reveal how each of the factors affect the screening power as well as some of the limitation of the proposed screening method.
 
 \subsection{Limitations}
 \label{sec:lim}
@@ -452,6 +452,7 @@ Combining \eqref{eq:thm2.1}, \eqref{eq:thm2.5}, \eqref{eq:thm2.6} and any $g^*\l
 \hspace{0 in}
 
 \section{Proof of Lemma \ref{lem:2}}
+\label{sec:lem2proof}
 
 To show the strong duality of \eqref{eq:bounddual}, we are going to show the Slater's condition holds. The objective function and all constraints in $\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')$ except for $\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{0})^{\circ 2}\rangle\leq r^2(\lambda_1,\lambda_0)$ are linear. The objective function and all constraints are convex. $\Theta_{0}$ is a value of $\Theta$ in $\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')$ that satisfies the strict inequality $\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{0})^{\circ 2}\rangle=0< r^2(\lambda_1,\lambda_0)$. The Slater's condition and thus the strong duality holds.
 
@@ -459,6 +460,7 @@ Also, the objective function is continuous and $\mathcal{A}(\lambda_1,{\lambda_0
 
 
 \section{Proof of Lemma \ref{lem:3}}
+\label{sec:lem3proof}
 
 The Lagrangian of negative of \eqref{eq:bounddual} is:
 \begin{gather}
