@@ -20,7 +20,7 @@ The lasso penalized Cox regression, with the Breslow approximation \citep{breslo
     \label{eq:cox}
     \underset{\beta\in \mathbb{R}^p}{\mathrm{min}}-y^TX\beta+\sum_{k=1}^f d_k\log\left(\sum_{i=1}^n \delta_{ki} e^{\tilde{x}_i^T\beta}\right)+n\lambda||\beta||_1,
 \end{equation}
-where $\beta\in\mathbb{R}^p$ is the coefficient vector corresponding to the $p$ features and $\lambda>0$ is the regularization parameter that controls the size of lasso penalty. A dual form of \eqref{eq:cox} is given by (see Appendix~\ref{sec:dual} for details):
+where $\beta\in\mathbb{R}^p$ is the coefficient vector corresponding to the $p$ features and $\lambda>0$ is the regularization parameter that controls the size of lasso penalty. A dual form of \eqref{eq:cox} is given by (see Appendix~\ref{sec:dualcox} for details):
 \begin{gather}
         \label{eq:dualTheta}
         \underset{\Theta\in \mathbb{R}^{f\times n}}{\mathrm{min}}g(\Theta)\equiv\sum_{k=1}^f\sum_{i=1}^n\delta_{ki}(Y_{ki}+d_k^{1/2}\Theta_{ki})\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta_{ki}}{d_k^{1/2}}\right)\\
@@ -30,17 +30,17 @@ where $\beta\in\mathbb{R}^p$ is the coefficient vector corresponding to the $p$ 
 \end{gather}
 where $\Theta\in \mathbb{R}^{f\times n}$ is the dual variable, $D=\textrm{diag}(d)$, ``$>$'' is element wise greater-than, $(\cdot)^{1/2}$ is the element wise square root, $\circ$ is element wise product, and we define $0\log 0$ to be 0. The dual problem therefore consists of minimizing the convex function $g(\Theta)$ within a convex feasible set $\mathcal{F}_\lambda$. Letting $\beta_\lambda$ denote the solution to the primal problem at penalty parameter value $\lambda$ and $\Theta_{\lambda}$ denote the corresponding dual solution, the primal solution and dual solution are connected by
 \begin{equation}
-    \label{eq:dualprimal}
+    \label{eq:dualprimalcox}
     [\Theta_\lambda]_{ki}=d_k^{1/2}\delta_{ki}\frac{e^{\tilde{x}_i\beta_\lambda}}{\sum_{i'=1}^n\delta_{ki'}e^{\tilde{x}_{i'}\beta_\lambda}}-d_k^{-1/2}Y_{ki},
 \end{equation}
 for all $k$ and $i$. Furthermore, the KKT conditions for the primal problem~\eqref{eq:cox} can be expressed as:
 \begin{gather}
-    \label{eq:kkt}
+    \label{eq:kktcox}
     \begin{aligned}&[\beta_\lambda]_{j}=0\implies\left|x_j^T\Theta_\lambda^Td^{1/2}\right|\leq n\lambda\\
     & [\beta_\lambda]_{j}\neq0\implies x_j^T\Theta_\lambda^Td^{1/2}= n\lambda\textit{sign}([\beta_\lambda]_{j}).
     \end{aligned}
 \end{gather}
-for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt}, we can obtain a closed form solution for the problem at large $\lambda$ values:
+for any $j$. Combining \eqref{eq:dualprimalcox} and \eqref{eq:kktcox}, we can obtain a closed form solution for the problem at large $\lambda$ values:
 \begin{gather}
     \label{eq:lammax}
     \begin{aligned}
@@ -50,16 +50,16 @@ for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt}, we can obtain a
 \end{gather}
 Thus, when solving the problems on a grid of $L+1$ decreasing $\lambda$ values: $\lambda_0>\lambda_1>...>\lambda_L>0$, it makes more sense to choose $\lambda_0=\lambda_{\max}$ to take advantage of the known solution. If an algorithm solves the problems sequentially in decreasing order of $\lambda$, then the solution at $\lambda_{l'}$ will be known before solving the problem at $\lambda_l$ if $l'<l$. In the rest of this section, we will derive a screening method for this pathwise approach. Also, without loss of generality, we will derive the screening method for the problem at $\lambda_1$ assuming the solution at $\lambda_0$ is known and can be used as a reference for screening. We refer to this pair as the \quotes{target} ($\lambda_1)$ and the \quotes{reference} ($\lambda_0$). The same method can be applied to any pair of $\lambda_{l}$ and $\lambda_{l'}$. For simplicity, we will use $\beta_l,\Theta_l$ to denote the solution, and $\mathcal{F}_l$ to denote the feasible set, at any $\lambda_l$.
 
-An important implication of the KKT conditions \eqref{eq:kkt} is that for any $\lambda_1$, if 
+An important implication of the KKT conditions \eqref{eq:kktcox} is that for any $\lambda_1$, if 
 \begin{equation}
-    \label{eq:disc_cond}
+    \label{eq:disc_condcox}
     |x_j^T\Theta_{1}^Td^{1/2}|<n\lambda_1,
 \end{equation}
-then we can safely conclude $[\beta_1]_{j}=0$ and the corresponding $x_j$ can be discarded from the optimization at $\lambda_1$. Although the left hand side of \eqref{eq:disc_cond} is unknown until the solution is obtained, we can use the solution at $\lambda_{0}$ to derive a bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{0})\geq |x_j^T\Theta_{1}^Td^{1/2}|$. Then, if $T_j(\lambda_{1},\lambda_{0};\Theta_{0})<n\lambda_1$ we can also safely conclude $[\beta_1]_{j}=0$. To achieve the greatest improvement in speed, $T_j(\lambda_{1},\lambda_{0};\Theta_{0})$ should be as small as possible, as this will result in the greatest number of discarded features.
+then we can safely conclude $[\beta_1]_{j}=0$ and the corresponding $x_j$ can be discarded from the optimization at $\lambda_1$. Although the left hand side of \eqref{eq:disc_condcox} is unknown until the solution is obtained, we can use the solution at $\lambda_{0}$ to derive a bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{0})\geq |x_j^T\Theta_{1}^Td^{1/2}|$. Then, if $T_j(\lambda_{1},\lambda_{0};\Theta_{0})<n\lambda_1$ we can also safely conclude $[\beta_1]_{j}=0$. To achieve the greatest improvement in speed, $T_j(\lambda_{1},\lambda_{0};\Theta_{0})$ should be as small as possible, as this will result in the greatest number of discarded features.
 
 \subsection{Dual Variable Bound}
 
-The only unknown term in \eqref{eq:disc_cond} is $\Theta_{1}$. In this section we will derive a bound for $\Theta_{1}$ assuming the previous solution $\Theta_{0}$ is known.
+The only unknown term in \eqref{eq:disc_condcox} is $\Theta_{1}$. In this section we will derive a bound for $\Theta_{1}$ assuming the previous solution $\Theta_{0}$ is known.
 
 \begin{lemma}
     \label{lem:1}
@@ -100,7 +100,7 @@ We propose to instead use $g^* = g(\Theta^*_{1})$, where
         s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
     \end{aligned}
 \end{gather}
-Note that $g(\Theta^*_{1}) \leq g(\Theta_{1})$ because compared to $\mathcal{F}_{1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. After solving the primal problem, $\Theta_1^*$ and thus $g(\Theta_1^*)$ can be easily computed by \eqref{eq:dualprimal}. Moreover, the primal solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimal} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
+Note that $g(\Theta^*_{1}) \leq g(\Theta_{1})$ because compared to $\mathcal{F}_{1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. After solving the primal problem, $\Theta_1^*$ and thus $g(\Theta_1^*)$ can be easily computed by \eqref{eq:dualprimalcox}. Moreover, the primal solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimalcox} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
 
 Theorem \ref{thm:1} says $\Theta_{1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. Note that the center and the size do not involve the unknown quantity $\Theta_{1}$. Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
 
@@ -278,7 +278,7 @@ To address the limitations discussed in \ref{sec:lim}, we will consider modified
 
 In the following experiment, we will test different screening methods, and the algorithm optimizing the reduced problem after screening is the Coordinate Descent \citep{simon2011regularization} with Active Cycling \citep{lee2007efficient}. Active Cycling (AC) is a simple idea similar to screening, where the reduced problem with only features that are active in previous solution is first solved and then a KKT condition check validates if there is any other active feature. It is easy to be implemented with any screening method and is shown to greatly reduce computation cost in most cases, so in this experiment we combine it with all screening method. The screening methods we compare are: no screening other than AC (AC), basic version of the sequential safe rule that uses only the solution at $\lambda_{\max}$ (Basic), sequential safe rule that uses previous solution (Sequential), sequential strong rule (SSR) and adaptive screening built on the sequential safe rule (Adaptive).
 
-Table \ref{Tab:real} summarizes the total computation cost with standard error in second, using different screening methods and datasets. In the dataset with coarse observed times and binary features (Both Modified), the sequential safe screening can provide significant speedup that is close to sequential strong rule. Moreover, an adaptive screening can be built upon the sequential safe rule and outperform all other screening methods in the special case. The adaptive screening method is also robust and is close to fastest under all cases.
+Table \ref{Tab:realcox} summarizes the total computation cost with standard error in second, using different screening methods and datasets. In the dataset with coarse observed times and binary features (Both Modified), the sequential safe screening can provide significant speedup that is close to sequential strong rule. Moreover, an adaptive screening can be built upon the sequential safe rule and outperform all other screening methods in the special case. The adaptive screening method is also robust and is close to fastest under all cases.
 
 \begin{table}[H]
 \centering
@@ -294,7 +294,7 @@ Adaptive & 1.302 (0.004) & 1.078 (0.002) & 1.255 (0.003) & \textbf{0.769 (0.003)
 \bottomrule
 \end{tabular}
 \caption{Average computing time in second (standard error)}
-\label{Tab:real}
+\label{Tab:realcox}
 \end{table}
 
 
@@ -316,7 +316,7 @@ In this paper, we propose a novel safe screening rule to help solving lasso pena
 
 
 \section{Derivation of the Dual Problem}
-\label{sec:dual}
+\label{sec:dualcox}
 
 Introducing a new variable $Z\equiv\mathbf{1}\beta^TX^T\in\mathbb{R}^{f\times n}$, which means $z_{ki}\equiv\tilde{x}_i^T\beta,\,\forall k$, then the problem \eqref{eq:cox} becomes:
 \begin{equation}
@@ -393,7 +393,7 @@ Let $d^{1/2}=\{d_k^{1/2}\}_{k=1}^f$ and $D^{1/2}=diag(d^{1/2})$. Note that \begi
     \item $\left(D^{-1/2}(U-Y)\right)\circ(1-\Delta)=D^{-1/2}\left((U-Y)\circ(1-\Delta)\right)=D^{-1/2}\left(U\circ(1-\Delta)\right)=0$ iff $U\circ(1-\Delta)=0$,
     \item $D^{-1/2}(U-Y)\mathbf{1}=D^{-1/2}(U\mathbf{1}-Y\mathbf{1})=D^{-1/2}(U\mathbf{1}-d)=0$ iff $U\mathbf{1}-d=0$.
 \end{itemize}
-Letting $\Theta=D^{-1/2}(U-Y)$, then the dual problem \eqref{eq:dualu} can be expressed as in \eqref{eq:dualTheta} and the dual solution and primal solution can be connected by \eqref{eq:dualprimal}.
+Letting $\Theta=D^{-1/2}(U-Y)$, then the dual problem \eqref{eq:dualu} can be expressed as in \eqref{eq:dualTheta} and the dual solution and primal solution can be connected by \eqref{eq:dualprimalcox}.
 
 
 \section{Proof of Theorem \ref{thm:1}}
