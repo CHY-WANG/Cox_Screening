@@ -29,32 +29,28 @@ where $\beta\in\mathbb{R}^p$ is the coefficient vector corresponding to the $p$ 
         \end{aligned}
 \end{gather}
 where $\Theta\in \mathbb{R}^{f\times n}$ is the dual variable, $D=\textrm{diag}(d)$, ``$>$'' is element wise greater-than, $(\cdot)^{1/2}$ is the element wise square root, $\circ$ is element wise product, and we define $0\log 0$ to be 0. The dual problem therefore consists of minimizing the convex function $g(\Theta)$ within a convex feasible set $\mathcal{F}_\lambda$. Letting $\beta_\lambda$ denote the solution to the primal problem at penalty parameter value $\lambda$ and $\Theta_{\lambda}$ denote the corresponding dual solution, the primal solution and dual solution are connected by
-
 \begin{equation}
     \label{eq:dualprimal}
-    \Theta_{\lambda,ki}=d_k^{1/2}\delta_{ki}\frac{e^{\tilde{x}_i\beta_\lambda}}{\sum_{i'=1}^n\delta_{ki'}e^{\tilde{x}_{i'}\beta_\lambda}}-d_k^{-1/2}Y_{ki},
+    [\Theta_\lambda]_{ki}=d_k^{1/2}\delta_{ki}\frac{e^{\tilde{x}_i\beta_\lambda}}{\sum_{i'=1}^n\delta_{ki'}e^{\tilde{x}_{i'}\beta_\lambda}}-d_k^{-1/2}Y_{ki},
 \end{equation}
 for all $k$ and $i$. Furthermore, the KKT conditions for the primal problem~\eqref{eq:cox} can be expressed as:
-
 \begin{gather}
     \label{eq:kkt}
-    \begin{aligned}&\beta_{\lambda,j}=0\implies\left|x_j^T\Theta_\lambda^Td^{1/2}\right|\leq n\lambda\\
-    & \beta_{\lambda,j}\neq0\implies x_j^T\Theta_\lambda^Td^{1/2}= n\lambda\textit{sign}(\beta_{\lambda,j}).
+    \begin{aligned}&[\beta_\lambda]_{j}=0\implies\left|x_j^T\Theta_\lambda^Td^{1/2}\right|\leq n\lambda\\
+    & [\beta_\lambda]_{j}\neq0\implies x_j^T\Theta_\lambda^Td^{1/2}= n\lambda\textit{sign}([\beta_\lambda]_{j}).
     \end{aligned}
 \end{gather}
 for any $j$. Combining \eqref{eq:dualprimal} and \eqref{eq:kkt}, we can obtain a closed form solution for the problem at large $\lambda$ values:
-
 \begin{gather}
     \label{eq:lammax}
     \begin{aligned}
         \beta_\lambda=0\iff \lambda \geq \lambda_{\max}&\equiv \max_j \left|x_j^T\Theta^T_{\lambda_{\max}}d^{1/2}\right|/n,\\
-        \textrm{where}\quad\Theta_{\lambda_{\max},ki}&=\frac{d_k^{1/2}\delta_{ki}}{\sum_{i'=1}^n\delta_{ki'}}-d_k^{-1/2}Y_{ki}.
+        \textrm{where}\quad[\Theta_{\lambda_{\max}}]_{ki}&=\frac{d_k^{1/2}\delta_{ki}}{\sum_{i'=1}^n\delta_{ki'}}-d_k^{-1/2}Y_{ki}.
     \end{aligned}
 \end{gather}
 Thus, when solving the problems on a grid of $L+1$ decreasing $\lambda$ values: $\lambda_0>\lambda_1>...>\lambda_L>0$, it makes more sense to choose $\lambda_0=\lambda_{\max}$ to take advantage of the known solution. If an algorithm solves the problems sequentially in decreasing order of $\lambda$, then the solution at $\lambda_{l'}$ will be known before solving the problem at $\lambda_l$ if $l'<l$. In the rest of this section, we will derive a screening method for this pathwise approach. Also, without loss of generality, we will derive the screening method for the problem at $\lambda_1$ assuming the solution at $\lambda_0$ is known and can be used as a reference for screening. We refer to this pair as the \quotes{target} ($\lambda_1)$ and the \quotes{reference} ($\lambda_0$). The same method can be applied to any pair of $\lambda_{l}$ and $\lambda_{l'}$. For simplicity, we will use $\beta_l,\Theta_l$ to denote the solution, and $\mathcal{F}_l$ to denote the feasible set, at any $\lambda_l$.
 
 An important implication of the KKT conditions \eqref{eq:kkt} is that for any $\lambda_1$, if 
-
 \begin{equation}
     \label{eq:disc_cond}
     |x_j^T\Theta_{1}^Td^{1/2}|<n\lambda_1,
@@ -62,8 +58,6 @@ An important implication of the KKT conditions \eqref{eq:kkt} is that for any $\
 then we can safely conclude $[\beta_1]_{j}=0$ and the corresponding $x_j$ can be discarded from the optimization at $\lambda_1$. Although the left hand side of \eqref{eq:disc_cond} is unknown until the solution is obtained, we can use the solution at $\lambda_{0}$ to derive a bound for the left hand side: $T_j(\lambda_{1},\lambda_{0};\Theta_{0})\geq |x_j^T\Theta_{1}^Td^{1/2}|$. Then, if $T_j(\lambda_{1},\lambda_{0};\Theta_{0})<n\lambda_1$ we can also safely conclude $[\beta_1]_{j}=0$. To achieve the greatest improvement in speed, $T_j(\lambda_{1},\lambda_{0};\Theta_{0})$ should be as small as possible, as this will result in the greatest number of discarded features.
 
 \subsection{Dual Variable Bound}
-
-\pb{Seems like the notation here would be simpler / more consistent if we used $\Theta_0$, $\Theta_1$, $\mathcal{F}_0$, $\mathcal{F}_1$, and so on}
 
 The only unknown term in \eqref{eq:disc_cond} is $\Theta_{1}$. In this section we will derive a bound for $\Theta_{1}$ assuming the previous solution $\Theta_{0}$ is known.
 
@@ -75,19 +69,16 @@ The only unknown term in \eqref{eq:disc_cond} is $\Theta_{1}$. In this section w
 The lemma also implies that $\mathcal{F}_{1}\subseteq\mathcal{F}_{\infty}\equiv\{\Theta: D^{1/2}\Theta+Y+(1-\Delta)> 0,\Theta\circ(1-\Delta)=0, \Theta\mathbf{1}=0\}$.
 
 The dual function $g(\Theta)$ is twice differentiable in $\mathcal{F}_{\infty}$, so by its second order expansion we have:
-
 \begin{equation}
         \label{eq:expand}
         g(\Theta_{1})-g(\Theta_{0})-\langle\nabla g(\Theta_{0}),\Theta_{1}-\Theta_{0}\rangle=\frac{1}{2}\langle\nabla^2 g(\Theta''),(\Theta_{1}-\Theta_{0})^{\circ 2}\rangle,%\geq \frac{1}{2}||\Theta'-\Theta||_2^2,
 \end{equation}
 for any $\lambda_1<\lambda_{0}\in (0,\lambda_\textrm{max}]$, where $(\cdot)^{\circ2}$ is element-wise square, $\langle A,B\rangle=\sum_{i=1}^n\sum_{i'=1}^mA_{ii'}B_{ii'}$ for any $n\times m$ matrices $A$ and $B$, and $\Theta''$ is some point on the line segment between $\Theta_{1}$ and $\Theta_{0}$. Because $\Theta_{1}$ and $\Theta_{0}$ are in the convex set $\mathcal{F}_{0}$, $\Theta''$ is also in $\mathcal{F}_{0}$ and thus in $\mathcal{F}_{\infty}$. Note that
-
 \begin{align*}
   [\nabla g(\Theta'')]_{ki} &= \delta_{ki}d_k^{1/2}\log\left(\frac{Y_{ki}}{d_k}+\frac{\Theta''_{ki}}{d_k^{1/2}}\right)+d_k^{1/2} \\
   [\nabla^2 g(\Theta'')]_{ki,ki} &= \frac{\delta_{ki}d_k}{Y_{ki}+d_k^{1/2}\Theta''_{ki}},
 \end{align*}
 and $\nabla^2 g(\Theta'')$ is a diagonal matrix. For convenience, we will instead use $[\nabla^2 g(\Theta'')]$ to denote the $f\times n$ matrix where $[\nabla^2 g(\Theta'')]_{ki}=\frac{\delta_{ki}d_k}{y_{ki}+d_k^{1/2}\Theta''_{ki}}$. Using this expansion, we can derive a bound for $\Theta_{1}$.
-
 \begin{theorem}
     \label{thm:1}
     For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$ 
@@ -98,12 +89,10 @@ and $\nabla^2 g(\Theta'')$ is a diagonal matrix. For convenience, we will instea
 \end{theorem}
 
 An obvious choice of $g^*$ is $g(\Theta_{0})$ since
-
 \begin{equation*}
   g(\Theta_{1}) = \underset{\Theta\in \mathcal{F}_{1}}{\mathrm{min}}g(\Theta)\geq\underset{\Theta\in \mathcal{F}_{0}}{\mathrm{min}}g(\Theta) = g\left(\Theta_{0}\right).
 \end{equation*}
 We propose to instead use $g^* = g(\Theta^*_{1})$, where
-
 \begin{gather}
     \label{eq:gstar}
     \begin{aligned}
@@ -111,38 +100,35 @@ We propose to instead use $g^* = g(\Theta^*_{1})$, where
         s.t.\quad &|x_j^T\Theta d^{1/2}|\leq n\lambda_1,\forall j:|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0,\\&D^{1/2}\Theta+Y+(1-\Delta)> 0, \Theta\circ(1-\Delta)=0,\quad \Theta\mathbf{1}=0.
     \end{aligned}
 \end{gather}
-Note that $g(\Theta^*_{1}) \leq g(\Theta_{1})$ because compared to $\mathcal{F}_{1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. Moreover, the primal solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimal} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
+Note that $g(\Theta^*_{1}) \leq g(\Theta_{1})$ because compared to $\mathcal{F}_{1}$, the problem in \eqref{eq:gstar} has fewer constraints and its feasible set contains $\mathcal{F}_{1}$. Problem \eqref{eq:gstar} is also easy to optimize since it is equivalent to optimizing the primal problem with only features $x_j$ that satisfy $|x_j^T\Theta_{0} d^{1/2}|= n\lambda_0$, or in other words, have non-zero coefficients at $\lambda_0$. Due to the sparsity of lasso solutions, only a small number of features will be included and the primal problem can be optimized quickly. After solving the primal problem, $\Theta_1^*$ and thus $g(\Theta_1^*)$ can be easily computed by \eqref{eq:dualprimal}. Moreover, the primal solution can be used as a warm start for optimization at $\lambda_1$, so solving for $g(\Theta^*_{1})$ will not introduce extra cost. \pb{Is this true? It is not obvious to me that \eqref{eq:dualprimal} can be easily solved for $\beta$ in terms of $\Theta$ and therefore that one can use the solution to the dual problem as a warm start.}
 
-Theorem \ref{thm:1} says $\Theta_{\lambda_1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. Note that the center and the size do not involve the unknown quantity $\Theta_{\lambda_1}$. Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
+Theorem \ref{thm:1} says $\Theta_{1}$ is bounded within an ellipsoid centered at $\frac{\lambda_1}{\lambda_0}\Theta_{0}$, with shape controlled by $\nabla^2g(\Theta'')$ and size controlled by $r(\lambda_1,\lambda_0)$. Note that the center and the size do not involve the unknown quantity $\Theta_{1}$. Because $d_k^{1/2}\Theta''_{ki}+y_{ki}\geq 0$ and $\sum_{i=1}^nd_k^{1/2}\Theta''_{ki}+y_{ki}=d_k$, we have $d_k^{1/2}\Theta''_{ki}+y_{ki}\leq d_k$ and $[\nabla^2 g(\Theta'')]_{ki}\geq\delta_{ki}\geq 0$, so $g(\Theta)$ is convex. Furthermore, $\forall\Theta,\Theta'\in\mathcal{F}_{\infty}$, if $\delta_{ki}=0$, $\Theta_{ki}=\Theta'_{ki}=0$, so in $\mathcal{F}_{\infty}$, $g(\Theta)$ is actually strongly convex with $[\nabla^2 g(\Theta)]_{ki}\geq 1$ if $\delta_{ki}=1$. This implies the bound in Theorem \ref{thm:1} is a proper ellipsoid in the subspace $\mathcal{F}_{\infty}$, although the $\Theta''$ that controls its shape is unknown.
 
 \subsection{Upper bound via Solving Bounded Optimization}
 
-In this section, we derive the upper bound $T_j(\lambda_1,\lambda_0;\Theta_{\lambda_0})$ for $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ using the bound in Theorem~\ref{thm:1} and the fact that $\Theta''\in\mathcal{F}_{\infty}$.
+In this section, we derive the upper bound $T_j(\lambda_1,\lambda_0;\Theta_{0})$ for $|x_j^T\Theta^T_{1}d^{1/2}|$ using the bound in Theorem~\ref{thm:1} and the fact that $\Theta''\in\mathcal{F}_{\infty}$.
 
-If $\Theta''$ were known, then by Theorem~\ref{thm:1} and the fact that $\Theta_{\lambda_1}$ is in the feasible set $\mathcal{F}_{\lambda_1}$, $\Theta_{\lambda_1}$ is bounded in the convex compact set
-
+If $\Theta''$ were known, then by Theorem~\ref{thm:1} and the fact that $\Theta_{1}$ is in the feasible set $\mathcal{F}_{1}$, $\Theta_{1}$ is bounded in the convex compact set
  \begin{equation}
-     \mathcal{A}(\lambda_1,{\lambda_0},\Theta'')\equiv\{\Theta:\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle\leq r^2(\lambda_1,\lambda_0),\,\Theta\circ(1-\Delta)=0,\, \Theta\mathbf{1}=0\}.
+     \mathcal{A}(\lambda_1,{\lambda_0},\Theta'')\equiv\{\Theta:\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{0})^{\circ 2}\rangle\leq r^2(\lambda_1,\lambda_0),\,\Theta\circ(1-\Delta)=0,\, \Theta\mathbf{1}=0\}.
  \end{equation}
-Now, $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ is bounded above by:
-
+Now, $|x_j^T\Theta^T_{1}d^{1/2}|$ is bounded above by:
 \begin{equation}
-    T^*_{j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} |x_j^T\Theta^T d^{1/2}|;
+    T^*_{j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} |x_j^T\Theta^T d^{1/2}|;
 \end{equation}
 this problem is equivalent to the maximum of the 2 sub-problems:
-
 \begin{equation}
     \label{eq:bounddual}
-    T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')} \xi x_j^T\Theta^T d^{1/2},
+    T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')\equiv\max_{\Theta\in\mathcal{A}(\lambda_1,\lambda_0,\Theta'')} \xi x_j^T\Theta^T d^{1/2},
 \end{equation}
-where $\xi = \pm 1$. Before deriving an upper bound for $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')$, we first establish two supporting lemmas.
+where $\xi = \pm 1$. Before deriving an upper bound for $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')$, we first establish two supporting lemmas.
 
 \begin{lemma}
     \label{lem:2}
     For any $\lambda_1<\lambda_{0}\in (0,\lambda_\textnormal{max}]$, strong duality holds for \eqref{eq:bounddual} and an optimal solution is admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
 \end{lemma}
 
-Lemma~\ref{lem:2} says that the solution to \eqref{eq:bounddual} is the same as its dual solution, given in Lemma~\ref{lem:3}.
+Lemma~\ref{lem:2} says that the solution to \eqref{eq:bounddual} is the same as its dual solution, given in Lemma~\ref{lem:3}. \comment{This does not sound correct. Primal and dual problems solve for different variables. It is the maximum and minimum that are the same.}
 
 \begin{lemma}
     \label{lem:3}
@@ -155,12 +141,12 @@ Lemma~\ref{lem:2} says that the solution to \eqref{eq:bounddual} is the same as 
     If $P_{\mathbf{1}}x_j\neq 0$, the maximum in \eqref{eq:bounddual} is equal to:
     \begin{equation}
         \label{eq:tstar}
-        T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')=\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+r(\lambda_1,\lambda_0)\sqrt{\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2},
+        T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')=\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{0}^Td^{1/2}+r(\lambda_1,\lambda_0)\sqrt{\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2},
     \end{equation}
     where $P_{\mathbf{1}}$ is the projection matrix onto $\mathbf{1}$.
 \end{lemma}
 
-The condition $P_{\mathbf{1}}x_j \ne 0$ simply means that $X_{ij}$ is not constant across all subjects. This assumption can be made without loss of generality, since such features do not contain any information. Unfortunately, $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ still contains an unknown quantity, since $W$ depends on $\Theta''$. Thus, we again use the fact $\Theta''\in\mathcal{F}_\infty$ to construct an upper bound for $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ that does not depend on $\Theta''$.
+The condition $P_{\mathbf{1}}x_j \ne 0$ simply means that $X_{ij}$ is not constant across all subjects. This assumption can be made without loss of generality, since features that violate this assumption do not contain any information. Unfortunately, $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{0},\Theta'')$ still contains an unknown quantity, since $W$ depends on $\Theta''$. Thus, we again use the fact $\Theta''\in\mathcal{F}_\infty$ to construct an upper bound for $T^*_{\xi,j}(\lambda,\lambda_0;\Theta_{0},\Theta'')$ that does not depend on $\Theta''$.
 
 \begin{theorem}
     \label{thm:2}
@@ -172,7 +158,7 @@ The condition $P_{\mathbf{1}}x_j \ne 0$ simply means that $X_{ij}$ is not consta
     If $P_{\mathbf{1}}x_j\neq 0$,
     \begin{equation}
         \label{eq:gbbar}
-        \xi x_j^T\Theta_{\lambda_1}d^{1/2}\leq T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')\leq T_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0})\equiv\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}+r(\lambda_1,\lambda_0)||x_j||_\psi.
+        \xi x_j^T\Theta_{1}d^{1/2}\leq T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')\leq T_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0})\equiv\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{0}^Td^{1/2}+r(\lambda_1,\lambda_0)||x_j||_\psi.
     \end{equation}
 \end{theorem}
 
@@ -180,31 +166,31 @@ With this result, we finally arrive at an upper bound,
 
 \begin{equation}
     \label{eq:bound}
-    T_j(\lambda_1,\lambda_0;\Theta_{\lambda_0})\equiv\max_{\xi=-1,1}\{T_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0})\},
+    T_j(\lambda_1,\lambda_0;\Theta_{0})\equiv\max_{\xi=-1,1}\{T_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0})\}=\frac{\lambda_1}{\lambda_0}\left| x_j^T\Theta_{0}^Td^{1/2}\right|+r(\lambda_1,\lambda_0)||x_j||_\psi,
 \end{equation}
-for $|x_j^T\Theta^T_{\lambda_1}d^{1/2}|$ that does not depend on any unknown quantities. 
+for $|x_j^T\Theta^T_{1}d^{1/2}|$ that does not depend on any unknown quantities. 
 
 \subsection{Safe Screening Rule of lasso Penalized Cox Regression}
 
-Theorem~\ref{thm:2} and \eqref{eq:bound} imply that for any $j$ and pair of points on a solution path $l^*<l$, if $T_j(\lambda_{l},\lambda_{l^*};\Theta_{\lambda_{l^*}})<n\lambda_l$ then we can safely conclude $\beta_{\lambda_l,j}=0$ and $x_j$ can be removed from the optimization at $\lambda_l$. We formally present this safe screening method, which can be used in combination with any optimization algorithm for lasso penalized Cox regression, in the following algorithm.
+Theorem~\ref{thm:2} and \eqref{eq:bound} imply that for any $j$ and pair of points on a solution path $l^*<l$, if $T_j(\lambda_{l},\lambda_{l^*};\Theta_{l^*})<n\lambda_l$ then we can safely conclude $[\beta_l]_{j}=0$ and $x_j$ can be removed from the optimization at $\lambda_l$. We formally present this safe screening method, which can be used in combination with any optimization algorithm for lasso penalized Cox regression, in the following algorithm.
 
 \begin{algorithm}[H]
     \SetKwInOut{Input}{Input}\SetKwInOut{Output}{Output}\SetKwInOut{Pre}{Pre-compute}\SetKwInOut{Initialize}{Initialize}\SetKwInOut{Choose}{Choose}
     \Input{$X,Y,\Delta$, $\lambda_0=\lambda_{\max}>\lambda_1>...>\lambda_L>0$}
-    \Initialize{$\beta_{\lambda_0} = 0$}
+    \Initialize{$\beta_{0} = 0$}
 
     
     \For{$l\xleftarrow{}$ 1 \KwTo L}{
         \Initialize{$\mathcal{A}_l=\{1,2,...,p\}$}
         \Choose{$l^*<l$}
         \For{$j\xleftarrow{}$ 1 \KwTo p}{
-            \uIf{$T_j(\lambda_l,\lambda_{l^*};\Theta_{\lambda_{l^*}})<n\lambda_l$}{
+            \uIf{$T_j(\lambda_l,\lambda_{l^*};\Theta_{l^*})<n\lambda_l$}{
                 Remove $j$ from $\mathcal{A}_l$\;
             }
         }
-        Run any optimization algorithm for lasso penalized Cox regression problem with input: $X_{\mathcal{A}_l},Y,\Delta,\lambda_l$. Save the solution $\beta_{\lambda_l}$.
+        Run any optimization algorithm for lasso penalized Cox regression problem with input: $X_{\mathcal{A}_l},Y,\Delta,\lambda_l$. Save the solution $\beta_{l}$.
     }
-    \Output{$\{\beta_{\lambda_{l}}\}_{l=0}^L$}
+    \Output{$\{\beta_{l}\}_{l=0}^L$}
 \end{algorithm}
 
 The $X_{\mathcal{A}_l}$ in the algorithm above denotes the sub-matrix of $X$ where the $j$-th column of $X$ is contained if and only if $j\in{\mathcal{A}_l}$. Any optimization algorithm can benefit from having a reduced input feature matrix $X_{\mathcal{A}_l}$. For example, the time cost of coordinate descent algorithm for lasso penalized Cox regression \citep{simon2011regularization} is roughly linear with the size of $\mathcal{A}_l$. Although the screening method is proposed for a sequence of $\lambda$ values, it can also be applied to solve the problem at a single $\lambda$ value by considering the sequence with length 2: $\lambda_{\max},\lambda$, since the solution at $\lambda_{\max}$ always has a simple closed form.
@@ -225,12 +211,10 @@ The nature of Cox regression is very different from other generalized linear reg
 
 
 For a general class of lasso penalized convex problems, the problem can be defined as:
-
 \begin{equation}
     \underset{\beta,\beta_0\in \mathbb{R}^p}{\mathrm{min}}l(X\beta+x_0^T\beta_0)+n\lambda||\beta||_1,
 \end{equation}
 where $l$ is closed convex twice differentiable function, $x_0$ is a known vector and $\beta_0$ is an unpenalized coefficient. Standard lasso, lasso penalized Cox regression, lasso penalized Logistic regression and a number of lasso type problems can all be expressed as the form above. One simple definition of the dual form is:
-
 \begin{gather}
     \begin{aligned}
          \underset{\theta\in \mathbb{R}^n}{\mathrm{min}} g(\theta)\quad s.t.\quad x_0^T\theta=0,||X^T\theta||_\infty\leq n\lambda
@@ -259,7 +243,6 @@ Note that as $c$ increases and the failure times are cut into less larger interv
 \subsubsection{Distribution of Features}
 
 The high dimensionality of the dual problem not only gives more freedom to the dual solution $\Theta_\lambda$, but also gives more freedom to the variable $\Theta''$ in Theorem \ref{thm:1}, which controls the shape of the ellipsoid bound for $\Theta_\lambda$. $\Theta''$ has the freedom to go to a direction that leads to a ``bad'' shape. It is shown in the difference between Lemma \ref{lem:3}, where $\Theta''$ is assumed known, and Theorem \ref{thm:2}, where the worst $\Theta''$ is considered. The impact can be interpreted as substituting a weighted variance whose weights $W$ depends on $\Theta''$ and are somewhat evenly distributed, with a weighted variance who puts half weight on the two extremist points each. The ratio between these two terms can be expressed as:
-
 \begin{equation}
     \label{eq:alpharatio}
     \frac{4\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2}{\sum_{k=1}^fd_k\left(\max_{i:\delta_{ki}=1}X_{ij}-\min_{i:\delta_{ki}=1}X_{ij}\right)^2}
@@ -336,7 +319,6 @@ In this paper, we propose a novel safe screening rule to help solving lasso pena
 \label{sec:dual}
 
 Introducing a new variable $Z\equiv\mathbf{1}\beta^TX^T\in\mathbb{R}^{f\times n}$, which means $z_{ki}\equiv\tilde{x}_i^T\beta,\,\forall k$, then the problem \eqref{eq:cox} becomes:
-
 \begin{equation}
     \label{eq:dual+z}
     \begin{gathered}
@@ -347,7 +329,6 @@ Introducing a new variable $Z\equiv\mathbf{1}\beta^TX^T\in\mathbb{R}^{f\times n}
 Let $\langle\cdot,\cdot\rangle$ denote the matrix element-wise inner product, where $\langle A,B \rangle\equiv\sum_{k=1}^f\sum_{i=1}^nA_{ki}B_{ki}$.
 
 Introducing the dual variable $U\in\mathbb{R}^{f\times n}$, the dual problem becomes:
-
 \begin{gather}
     \label{eq:dual+u}
     \begin{aligned}
@@ -357,14 +338,11 @@ Introducing the dual variable $U\in\mathbb{R}^{f\times n}$, the dual problem bec
     \end{aligned}    
 \end{gather}
 Minimizing with respect to $\beta$, the partial derivative is:
-
 \begin{equation}
     \label{eq:partialbeta}
     \frac{\partial}{\partial\beta}(\cdot) =-X^Ty+X^TU^T\mathbf{1}+n\lambda\frac{\partial||\beta||_1}{\partial\beta}
 \end{equation}
-so the minimum is obtained iff $
-    ||X^TU^T\mathbf{1}-X^Ty||_\infty\leq n\lambda,$ and the problem becomes:
-
+so the minimum is obtained iff $||X^TU^T\mathbf{1}-X^Ty||_\infty\leq n\lambda,$ and the problem becomes:
 \begin{gather}
     \label{eq:dual-beta}
     \begin{aligned}
@@ -375,13 +353,11 @@ so the minimum is obtained iff $
     \end{aligned}
 \end{gather}
 Take derivative with respect to $z_{ki}$:
-
 \begin{equation}
     \label{eq:partialz}
     \frac{\partial}{\partial z_{ki}}(\cdot)=-u_{ki}+\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}},
 \end{equation}
 and the minimum is obtained when $u_{ki}=\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i'=1}^n \delta_{ki'} e^{z_{ki'}}}$, which can be obtained iff:
-
 \begin{gather}
     \label{eq:constu1}
     \begin{aligned}
@@ -391,7 +367,6 @@ and the minimum is obtained when $u_{ki}=\frac{d_k\delta_{ki}e^{z_{ki}}}{\sum_{i
 \end{aligned}
 \end{gather}
 or
-
 \begin{gather}
     \label{eq:constu2}
     \begin{aligned}
@@ -401,7 +376,6 @@ or
 \end{aligned}
 \end{gather}
 where $>$ is hold element-wise and $\circ$ is element-wise product. The problem becomes
-
 \begin{gather}
     \label{eq:dualu}
     \begin{aligned}
@@ -425,66 +399,61 @@ Letting $\Theta=D^{-1/2}(U-Y)$, then the dual problem \eqref{eq:dualu} can be ex
 \section{Proof of Theorem \ref{thm:1}}
 
 
-It is easy to see that $\mathcal{F}_{\lambda_1}\subseteq\mathcal{F}_{\lambda_0}$. It can be shown that $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\in\mathcal{F}_{\lambda_1}$ because
-
+It can be shown that $\frac{\lambda_1}{\lambda_0}\Theta_{0}\in\mathcal{F}_{1}$ because
 \begin{itemize}
-    \item $||X^T\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}^Td^{1/2}||_\infty=\frac{\lambda_1}{\lambda_0}||X^T\Theta_{\lambda_0}^Td^{1/2}||_\infty\leq \frac{\lambda_1}{\lambda_0}n\lambda_0=n\lambda_1$.
-    \item Each element in the inequality $D^{1/2}\Theta+Y+(1-\Delta)> 0$ is $d_k^{1/2}\Theta_{ki}+Y_{ki}+(1-\delta_{ki})>0$. Also, $Y_{ki}+(1-\delta_{ki})\geq 0$. If $\Theta_{\lambda_0,ki}>0$, $d_k^{1/2}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}>0.$ If $\Theta_{\lambda_0,ki}\leq0$, $d_k^{1/2}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}\Theta_{\lambda_0,ki}+Y_{ki}+(1-\delta_{ki})>0.$
+    \item $||X^T\frac{\lambda_1}{\lambda_0}\Theta_{0}^Td^{1/2}||_\infty=\frac{\lambda_1}{\lambda_0}||X^T\Theta_{0}^Td^{1/2}||_\infty\leq \frac{\lambda_1}{\lambda_0}n\lambda_0=n\lambda_1$.
+    \item Each element in the inequality $D^{1/2}\Theta+Y+(1-\Delta)> 0$ is $d_k^{1/2}\Theta_{ki}+Y_{ki}+(1-\delta_{ki})>0$. Also, $Y_{ki}+(1-\delta_{ki})\geq 0$. If $[\Theta_0]_{ki}>0$, $d_k^{1/2}\frac{\lambda_1}{\lambda_0}[\Theta_0]_{ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}\frac{\lambda_1}{\lambda_0}[\Theta_0]_{ki}>0.$ If $[\Theta_0]_{ki}\leq0$, $d_k^{1/2}\frac{\lambda_1}{\lambda_0}[\Theta_0]_{ki}+Y_{ki}+(1-\delta_{ki})\geq d_k^{1/2}[\Theta_0]_{ki}+Y_{ki}+(1-\delta_{ki})>0.$
     \item Other constraints obviously hold.
 \end{itemize}
-Therefore $\Theta_{\lambda_1},\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\in \mathcal{F}_{\lambda_1}$. By Lemma ~\ref{lem:1}:
-
+Therefore $\Theta_{1},\frac{\lambda_1}{\lambda_0}\Theta_{0}\in \mathcal{F}_{1}$. Its second order expansion is:
 \begin{equation}
     \label{eq:thm2.1}
-    \left\langle\nabla^2 g(\Theta''),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)^{\circ 2}\right\rangle=2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)-g(\Theta_{\lambda_1})+\left\langle\nabla g\left(\Theta_{\lambda_1}\right),\left(\Theta_{\lambda_1}-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\right)\right\rangle\right),
+    \left\langle\nabla^2 g(\Theta''),\left(\Theta_{1}-\frac{\lambda_1}{\lambda_0}\Theta_{0}\right)^{\circ 2}\right\rangle=2\left(g\left(\frac{\lambda_1}{\lambda_0}\Theta_{0}\right)-g(\Theta_{1})+\left\langle\nabla g\left(\Theta_{1}\right),\left(\Theta_{1}-\frac{\lambda_1}{\lambda_0}\Theta_{0}\right)\right\rangle\right),
 \end{equation}
- for some $\Theta''\in[\Theta_\lambda,\frac{\lambda}{\lambda_0}\Theta_{\lambda_0}]\subseteq \mathcal{F}_\lambda$. Looking at the gradient term, the Slater's condition and thus the KKT condition for the dual problem \eqref{eq:dualTheta} holds at $\lambda_1$:
-
+ for some $\Theta''\in[\Theta_1,\frac{\lambda}{\lambda_0}\Theta_{0}]\subseteq \mathcal{F}_\lambda$. Looking at the gradient term, the Slater's condition and thus the KKT condition for the dual problem \eqref{eq:dualTheta} holds at $\lambda_1$:
 \begin{equation}
     \label{eq:thm2.3}
-    0=[\nabla g(\Theta_{\lambda_1})]_{ki}+\sum_{j=1}^p\eta^+_jX_{ij}d_k^{1/2}+\sum_{j=1}^p\eta^-_j(-X_{ij}d_k^{1/2})-\mu_{ki}d_k^{1/2}+\nu_{ki}(1-\delta_{ki})+\zeta_k,
+    0=[\nabla g(\Theta_{1})]_{ki}+\sum_{j=1}^p\eta^+_jX_{ij}d_k^{1/2}+\sum_{j=1}^p\eta^-_j(-X_{ij}d_k^{1/2})-\mu_{ki}d_k^{1/2}+\nu_{ki}(1-\delta_{ki})+\zeta_k,
 \end{equation}
-$\forall i,k$, where $\eta^+,\eta^-\in\mathbb{R}^p_+,\{\mu\}_{k,i}\in\mathbb{R}^{f\times n}_+,\{\nu\}_{k,i}\in\mathbb{R}^{f\times n},\zeta\in\mathbb{R}^f$ are vectors depending on $\lambda_0$. Because $\{D^{1/2}\Theta+Y+(1-\Delta)>0\}$ is an open set and $\Theta_{\lambda_1}$ must be an interior point of it, by complementary slackness, $\mu_{ki}=0,\forall k,i$. Therefore, \eqref{eq:thm2.3} becomes $\forall i,k$:
-
+$\forall i,k$, where $\eta^+,\eta^-\in\mathbb{R}^p_+,\{\mu\}_{k,i}\in\mathbb{R}^{f\times n}_+,\{\nu\}_{k,i}\in\mathbb{R}^{f\times n},\zeta\in\mathbb{R}^f$ are vectors depending on $\lambda_0$. Because $\{D^{1/2}\Theta+Y+(1-\Delta)>0\}$ is an open set and $\Theta_{1}$ must be an interior point of it, by complementary slackness, $\mu_{ki}=0,\forall k,i$. Therefore, \eqref{eq:thm2.3} becomes $\forall i,k$:
 \begin{equation}
     \label{eq:thm2.4}
-    0=[\nabla g(\Theta_{\lambda})]_{ki}+\sum_{j=1}^p\eta^+_jX_{ij}d_k^{1/2}+\sum_{j=1}^p\eta^-_j(-X_{ij}d_k^{1/2})+\nu_{ki}(1-\delta_{ki})+\zeta_k.
+    0=[\nabla g(\Theta_{1})]_{ki}+\sum_{j=1}^p\eta^+_jX_{ij}d_k^{1/2}+\sum_{j=1}^p\eta^-_j(-X_{ij}d_k^{1/2})+\nu_{ki}(1-\delta_{ki})+\zeta_k.
 \end{equation}
 
-By complementary slackness again, $\eta^+_j>0$ only if $x_j^T\Theta_{\lambda_1}^Td^{1/2}=\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda_1,ki}d_k^{1/2}=n\lambda_1$ and $\eta^-_j>0$ only if $-x_j^T\Theta_{\lambda_1}^Td^{1/2}=\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\Theta_{\lambda_1,ki}d_k^{1/2})=n\lambda_1$. $\eta^+_j=\eta^-_j=0$ otherwise. Therefore:
-
+By complementary slackness again, $\eta^+_j>0$ only if $x_j^T\Theta_{1}^Td^{1/2}=\sum_{i=1}^n\sum_{k=1}^fX_{ij}[\Theta_1]_{ki}d_k^{1/2}=n\lambda_1$ and $\eta^-_j>0$ only if $-x_j^T\Theta_{1}^Td^{1/2}=\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}[\Theta_1]_{ki}d_k^{1/2})=n\lambda_1$. $\eta^+_j=\eta^-_j=0$ otherwise. Therefore:
 \begin{gather}
     \label{eq:thm2.5}
     \begin{aligned}
-        -\langle\nabla g(\Theta_{\lambda_1}),\Theta_{\lambda_1}\rangle&=\sum_{i=1}^n\sum_{k=1}^f-[\nabla g(\Theta_{\lambda_1})]_{ki}\Theta_{\lambda_1,ki}\\
-        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda_1,ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\Theta_{\lambda_1,ki}d_k^{1/2})\\&\quad+\sum_{i=1}^n\sum_{k=1}^f\nu_{ki}(1-\delta_{ki})\Theta_{\lambda_1,ki}+\sum_{k=1}^f\zeta_{k}\sum_{i=1}^n\Theta_{\lambda_1,ki}\\
-        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}\Theta_{\lambda_1,ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\Theta_{\lambda_1,ki}d_k^{1/2})\\
-        &=\sum_{j:x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^-\\
-        &=n\lambda_1\left(\sum_{j:x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}\eta_j^-\right),
+        -\langle\nabla g(\Theta_{1}),\Theta_{1}\rangle&=\sum_{i=1}^n\sum_{k=1}^f-[\nabla g(\Theta_{1})]_{ki}[\Theta_1]_{ki}\\
+        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}[\Theta_1]_{ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}[\Theta_1]_{ki}d_k^{1/2})\\
+        &\quad+\sum_{i=1}^n\sum_{k=1}^f\nu_{ki}(1-\delta_{ki})[\Theta_1]_{ki}+\sum_{k=1}^f\zeta_{k}\sum_{i=1}^n[\Theta_1]_{ki}\\
+        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}[\Theta_1]_{ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}[\Theta_1]_{ki}d_k^{1/2})\\
+        &=\sum_{j:x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^++\sum_{j:-x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^-\\
+        &=n\lambda_1\left(\sum_{j:x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}\eta_j^++\sum_{j:-x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}\eta_j^-\right),
     \end{aligned}
 \end{gather}
-where the third equation holds because $\Theta_{\lambda_1}\in\mathcal{F}_{\lambda_1}$.
+where the third equation holds because $\Theta_{1}\in\mathcal{F}_{1}$.
 
-Because $\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\in \mathcal{F}_{\lambda_1}$, $\left|x_j^T\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}^Td^{1/2}\right|=\left|\sum_{i=1}^n\sum_{k=1}^fX_{ij}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}d_k^{1/2}\right|\leq n\lambda_1$. Similarly:
-
+Because $\frac{\lambda_1}{\lambda_0}\Theta_{0}\in \mathcal{F}_{1}$, $\left|x_j^T\frac{\lambda_1}{\lambda_0}\Theta_{0}^Td^{1/2}\right|=\left|\sum_{i=1}^n\sum_{k=1}^fX_{ij}\frac{\lambda_1}{\lambda_0}[\Theta_0]_{ki}d_k^{1/2}\right|\leq n\lambda_1$. Similarly:
 \begin{gather}
     \label{eq:thm2.6}
     \begin{aligned}
-        -\langle\nabla g(\Theta_{\lambda_1}),\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}\rangle
-        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0,ki}d_k^{1/2})\\
-        &\leq\sum_{j:x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^-\\
-        &=n\lambda_1\left(\sum_{j:x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}\eta_j^++\sum_{j:-x_j^T\Theta_{\lambda_1}^Td^{1/2}=n\lambda_1}\eta_j^-\right)\\
-        &=-\langle\nabla g(\Theta_{\lambda_1}),\Theta_{\lambda_1}\rangle.
+        -\langle\nabla g(\Theta_{1}),\frac{\lambda_1}{\lambda_0}\Theta_{0}\rangle
+        &=\sum_{j=1}^p\eta^+_j\sum_{i=1}^n\sum_{k=1}^fX_{ij}\frac{\lambda_1}{\lambda_0}[\Theta_0]_{ki}d_k^{1/2}+\sum_{j=1}^p\eta^-_j\sum_{i=1}^n\sum_{k=1}^f(-X_{ij}\frac{\lambda_1}{\lambda_0}[\Theta_0]_{ki}d_k^{1/2})\\
+        &\leq\sum_{j:x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^++\sum_{j:-x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}n\lambda_1\eta_j^-\\
+        &=n\lambda_1\left(\sum_{j:x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}\eta_j^++\sum_{j:-x_j^T\Theta_{1}^Td^{1/2}=n\lambda_1}\eta_j^-\right)\\
+        &=-\langle\nabla g(\Theta_{1}),\Theta_{1}\rangle.
     \end{aligned}
 \end{gather}
 
-Combining \eqref{eq:thm2.1}, \eqref{eq:thm2.5}, \eqref{eq:thm2.6} and any $g^*\leq g(\Theta_{\lambda_1})$, we have Theorem~\ref{thm:1} holds and end the proof.
+Combining \eqref{eq:thm2.1}, \eqref{eq:thm2.5}, \eqref{eq:thm2.6} and any $g^*\leq g(\Theta_{1})$, we have Theorem~\ref{thm:1} holds and end the proof.
 
 \hspace{0 in}
 
 \section{Proof of Lemma \ref{lem:2}}
 
-To show the strong duality of \eqref{eq:bounddual}, we are going to show the Slater's condition holds. The objective function and all constraints in $\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')$ except for $\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle\leq r^2(\lambda_1,\lambda_0)$ are linear. The objective function and all constraints are convex. $\Theta_{\lambda_0}$ is a value of $\Theta$ in $\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')$ that satisfies the strict inequality $\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{\lambda_0})^{\circ 2}\rangle=0< r^2(\lambda_1,\lambda_0)$. The Slater's condition and thus the strong duality holds.
+To show the strong duality of \eqref{eq:bounddual}, we are going to show the Slater's condition holds. The objective function and all constraints in $\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')$ except for $\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{0})^{\circ 2}\rangle\leq r^2(\lambda_1,\lambda_0)$ are linear. The objective function and all constraints are convex. $\Theta_{0}$ is a value of $\Theta$ in $\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')$ that satisfies the strict inequality $\langle\nabla^2 g(\Theta''),(\Theta-\Theta_{0})^{\circ 2}\rangle=0< r^2(\lambda_1,\lambda_0)$. The Slater's condition and thus the strong duality holds.
 
 Also, the objective function is continuous and $\mathcal{A}(\lambda_1,{\lambda_0},\Theta'')$ is compact, so an optimal solution will be admitted in $\mathcal{A}(\lambda,{\lambda_0},\Theta'')$.
 
@@ -492,71 +461,67 @@ Also, the objective function is continuous and $\mathcal{A}(\lambda_1,{\lambda_0
 \section{Proof of Lemma \ref{lem:3}}
 
 The Lagrangian of negative of \eqref{eq:bounddual} is:
-
 \begin{gather}
     \label{eq:lem4.1}
     \begin{aligned}
-        L(\Theta,u,V_1,v_2)=&-\xi x_j^T\Theta^T d^{1/2}+\frac{u}{2}\left(\langle\nabla^2 g(\Theta''),(\Theta-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0})^{\circ 2}\rangle-r^2(\lambda_1,\lambda_0)\right)
+        L(\Theta,u,V_1,v_2)=&-\xi x_j^T\Theta^T d^{1/2}+\frac{u}{2}\left(\langle\nabla^2 g(\Theta''),(\Theta-\frac{\lambda_1}{\lambda_0}\Theta_{0})^{\circ 2}\rangle-r^2(\lambda_1,\lambda_0)\right)
         +\langle V_1,\Theta\circ(1-\Delta)\rangle+v_2^T\Theta\mathbf{1}\\
-        =&\left\langle\left(-\xi d^{1/2}x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right),\Theta\right\rangle+\frac{u}{2}\left(\langle\nabla^2 g(\Theta''),(\Theta-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0})^{\circ 2}\rangle-r^2(\lambda_1,\lambda_0)\right)
+        =&\left\langle\left(-\xi d^{1/2}x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right),\Theta\right\rangle+\frac{u}{2}\left(\langle\nabla^2 g(\Theta''),(\Theta-\frac{\lambda_1}{\lambda_0}\Theta_{0})^{\circ 2}\rangle-r^2(\lambda_1,\lambda_0)\right)
     \end{aligned}
 \end{gather}
-where $u\geq 0$, $V_1\in\mathbb{R}^{f\times n},v_2\in\mathbb{R}^f$ are Lagrangian multipliers. Because of strong duality of \eqref{eq:bounddual}, $-T_{\xi,j}(\lambda,\lambda_0;\Theta_{\lambda_0},\Theta'')$ is equal to the maximization of $\eqref{eq:lem4.1}$. Take derivative with respect to $\Theta$ and set to 0:
+where $u\geq 0$, $V_1\in\mathbb{R}^{f\times n},v_2\in\mathbb{R}^f$ are Lagrangian multipliers. Because of strong duality of \eqref{eq:bounddual}, $-T_{\xi,j}(\lambda,\lambda_0;\Theta_{0},\Theta'')$ is equal to the maximization of \eqref{eq:lem4.1}. Take derivative with respect to $\Theta$ and set to 0:
 
 \begin{equation}
     \label{eq:lem4.2}
-    \nabla_\Theta L(\Theta,u,V_1,v_2)=-\xi d^{1/2}x_j^T+u\nabla^2g(\Theta'')\circ(\Theta-\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0})+V_1\circ(1-\Delta)+v_2\mathbf{1}^T=0.
+    \nabla_\Theta L(\Theta,u,V_1,v_2)=-\xi d^{1/2}x_j^T+u\nabla^2g(\Theta'')\circ(\Theta-\frac{\lambda_1}{\lambda_0}\Theta_{0})+V_1\circ(1-\Delta)+v_2\mathbf{1}^T=0.
 \end{equation}
 
 \begin{enumerate}
-    \item When $u\neq 0$, because $\Theta_{ki},\Theta_{\lambda_0,ki}\neq0\implies W_{ki}[\nabla^2g(\Theta'')]_{ki}=\delta_{ki}=1$ we have:
+    \item When $u\neq 0$, because $\Theta_{ki},[\Theta_0]_{ki}\neq0\implies W_{ki}[\nabla^2g(\Theta'')]_{ki}=\delta_{ki}=1$ we have:
+    \begin{equation}
+        \label{eq:lem4.3}
+        \Theta=\frac{\lambda_1}{\lambda_0}\Theta_{0}-\frac{1}{u}W\circ\left(-\xi d^{1/2}x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right).
+    \end{equation}
 
-\begin{equation}
-    \label{eq:lem4.3}
-    \Theta=\frac{\lambda_1}{\lambda_0}\Theta_{\lambda_0}-\frac{1}{u}W\circ\left(-\xi d^{1/2}x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right).
-\end{equation}
-
-Combining \eqref{eq:lem4.1},\eqref{eq:lem4.3} and the fact that $\Theta_{\lambda_0}\in\mathcal{F}_{\lambda_0}$, the dual function $\bar{g}(u,V_1,v2)\equiv\min_\Theta L(\Theta,u,V_1,v_2)$ is:
-
-\begin{equation}
+    Combining \eqref{eq:lem4.1},\eqref{eq:lem4.3} and the fact that $\Theta_{0}\in\mathcal{F}_{0}$, the dual function $\bar{g}(u,V_1,v_2)\equiv\min_\Theta L(\Theta,u,V_1,v_2)$ is:
+    \begin{equation}
     \label{eq:lem4.4}
-    \tilde{g}(u,V_1,v2)=-\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}-\frac{1}{2u}\left\langle W,\left( -\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)^{\circ2}\right\rangle-\frac{1}{2}ur(\lambda_1,\lambda_0)^2.
-\end{equation}
+    \tilde{g}(u,V_1,v_2)=-\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{0}^Td^{1/2}-\frac{1}{2u}\left\langle W,\left( -\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)^{\circ2}\right\rangle-\frac{1}{2}ur(\lambda_1,\lambda_0)^2.
+    \end{equation}
 
-The dual problem is to maximize the dual function under $u> 0$. It is unconstrained with respect to $V_1,v_2$. Take derivative with respect to $V_1,v_2$ and set to 0:
+    The dual problem is to maximize the dual function under $u> 0$. It is unconstrained with respect to $V_1,v_2$. Take derivative with respect to $V_1,v_2$ and set to 0:
 
-\begin{equation}
-    \label{eq:lem4.5}
-    \begin{cases}
-    \frac{\partial}{\partial V_1}=-\frac{1}{u}W\circ(1-\Delta)\circ\left(-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)=0,\\
-    \frac{\partial}{\partial v_2}=-\frac{1}{u}W\circ\left( -\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)\mathbf{1}=0.
-    \end{cases}
-\end{equation}
-The first equation is automatically satisfied because the constraint $W\circ(1-\Delta)=0$. Note in \eqref{eq:lem4.4}, if $\delta_{ki}=1$, $[V_1\circ(1-\Delta)]_{ki}=0$ and if $\delta_{ki}=0$, $W_{ki}=0$, so $V_1\circ(1-\Delta)$ can be set to 0 without changing the value of $\tilde{g}(u_1,u_2,V_1,v_2)$.
+    \begin{equation}
+        \label{eq:lem4.5}
+        \begin{cases}
+        \frac{\partial}{\partial V_1}=-\frac{1}{u}W\circ(1-\Delta)\circ\left(-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)=0,\\
+        \frac{\partial}{\partial v_2}=-\frac{1}{u}W\circ\left( -\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\right)\mathbf{1}=0.
+        \end{cases}
+    \end{equation}
+    The first equation is automatically satisfied because the constraint $W\circ(1-\Delta)=0$. Note in \eqref{eq:lem4.4}, if $\delta_{ki}=1$, $[V_1\circ(1-\Delta)]_{ki}=0$ and if $\delta_{ki}=0$, $W_{ki}=0$, so $V_1\circ(1-\Delta)$ can be set to 0 without changing the value of $\tilde{g}(u,V_1,v_2)$.
 
-The second equation states that each row of the matrix $W\circ\left( -\xi d^{1/2} x_j^T+v_2\mathbf{1}^T\right)$ sums to 0, or in other word, each row of $W\circ\left(-\xi d^{1/2}x_j^T\right)$ is centered.
+    The second equation states that each row of the matrix $W\circ\left( -\xi d^{1/2} x_j^T+v_2\mathbf{1}^T\right)$ sums to 0, or in other word, each row of $W\circ\left(-\xi d^{1/2}x_j^T\right)$ is centered.
 
-Combining \eqref{eq:lem4.4} and \eqref{eq:lem4.5} the dual problem  becomes maximizing $\bar{g}(u)=\max_{V_1,v_2}\tilde{g}(u,V_1,v2)$ under constrains $u>0$. It is also easy to see that $\Theta''\in\mathcal{F}_{\lambda_0}\implies\sum_{i=1}^nW_{ki}=1,\forall k$ is a proper vector of weights, so we have
+    Combining \eqref{eq:lem4.4} and \eqref{eq:lem4.5} the dual problem becomes maximizing $\bar{g}(u)=\max_{V_1,v_2}\tilde{g}(u,V_1,v2)$ under constrains $u>0$. It is also easy to see that $\Theta''\in\mathcal{F}_{0}\implies\sum_{i=1}^nW_{ki}=1,\forall k$. $W_k$ is a proper vector of weights, so we have
+    \begin{equation}
+        \label{eq:lem4.6}
+        \bar{g}(u)=-\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{0}^Td^{1/2}-\frac{1}{2}ur^2(\lambda_1,\lambda_0)-\frac{1}{2u}\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2.
+    \end{equation}
+    Both $r^2(\lambda_1,\lambda_0)$ and $\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2$ are non-negative, so the maximum is easy to obtain, and negative of the maximum will be the maximum in \eqref{eq:tstar}.
 
-\begin{equation}
-    \label{eq:lem4.6}
-    \bar{g}(u)=-\frac{\lambda_1}{\lambda_0}\xi x_j^T\Theta_{\lambda_0}^Td^{1/2}-\frac{1}{2}ur^2(\lambda_1,\lambda_0)-\frac{1}{2u}\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2.
-\end{equation}
- Both $r^2(\lambda_1,\lambda_0)$ and $\sum_{k=1}^fd_k\sum_{i=1}^nW_{ki}\left(X_{ij}-W_k^Tx_j\right)^2$ are non-negative, so the maximum is easy to obtain, and negative of the maximum will be the maximum in \eqref{eq:tstar}.
+    \item When $u=0$, to solve \eqref{eq:lem4.2} we need to solve $-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T=0.$ At the first unique failure time $k_0\in\{1,2,3,...,f\}$, all the subjects are at risk and $\delta_{k_0,i}=1,\forall i$. With out loss of generality, assume $k_0=1$. The first row of this equation becomes:
 
-\item When $u=0$, to solve \eqref{eq:lem4.2} we need to solve $-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T=0.$ At the first unique failure time $k_0\in\{1,2,3,...,f\}$, all the subjects are at risk and $\delta_{k_0,i}=1,\forall i$. With out loss of generality, assume $k_0=1$. The first row of this equation becomes:
+    \begin{equation}
+        -\xi d_1^{1/2}x_j + v_{2,1}\mathbf{1}=0.
+    \end{equation}
 
-\begin{equation}
-    -\xi d_1^{1/2}x_j + v_{2,1}\mathbf{1}=0.
-\end{equation}
+    Let $P_{\mathbf{1}}=I_n-\mathbf{1_n}\mathbf{1_n}^T$ be the projection onto the orthogonal complement of the space spanned by $\mathbf{1}$. Multiply both sides by $-\xi d^{-1/2}_1P_{\mathbf{1_n}}$ we have:
 
-Let $P_{\mathbf{1}}=I_n-\mathbf{1_n}\mathbf{1_n}^T$ be the projection onto the orthogonal complement of the space spanned by $\mathbf{1}$. Multiply both sides by $-\xi d^{-1/2}_1P_{\mathbf{1_n}}$ we have:
-
-\begin{equation}
-    \label{eq:lem4.7}
-     P_{\mathbf{1}}x_j=0,
-\end{equation}
-which means $x_j$ is a vector of a constant and contradicts the assumption. Thus $-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\neq0.$ $\tilde{g}(0,V_1,v2)\equiv\min_\Theta L(\Theta,0,V_1,v_2)=-\infty$ because $L(\Theta,0,u_2,V_1,v_2)$ is linear in $\Theta$ with nonzero coefficients. End of proof.
+    \begin{equation}
+        \label{eq:lem4.7}
+        P_{\mathbf{1}}x_j=0,
+    \end{equation}
+    which means $x_j$ is a vector of a constant and contradicts the assumption. Thus $-\xi d^{1/2} x_j^T+V_1\circ(1-\Delta)+v_2\mathbf{1}^T\neq0.$ $\tilde{g}(0,V_1,v2)\equiv\min_\Theta L(\Theta,0,V_1,v_2)=-\infty$ because $L(\Theta,0,u_2,V_1,v_2)$ is linear in $\Theta$ with nonzero coefficients. End of proof.
 
 
 \end{enumerate}
@@ -565,12 +530,12 @@ which means $x_j$ is a vector of a constant and contradicts the assumption. Thus
 \section{Proof of Theorem \ref{thm:2}}
 
     Let $V_{w}(x)\equiv\sum_{i=1}^nw_{i}\left(x_i-w^Tx\right)^2$ denote the weighted variance of $x$ with weights $w$.\\
-    In \eqref{eq:tstar}, we can see that the term $\sum_{i=1}^nW_{ki}\left( X_{ij}-W_k^Tx_j\right)^2=V_{W_k}(x_j)$ is the weighted variance of $x_j$ with weight $W_k$ because $\Theta''\in\mathcal{F}_{\lambda_0}\implies\sum_{i=1}^nW_{ki}=1$. Because $\Theta''\in\mathcal{F}_{\lambda_0}$, another constraint is $W_{ki}=0$ if $\delta_{ki}=0$. The weighted variance will be maximized when the two extremist points each have $\frac{1}{2}$ weight:
+    In \eqref{eq:tstar}, we can see that the term $\sum_{i=1}^nW_{ki}\left( X_{ij}-W_k^Tx_j\right)^2=V_{W_k}(x_j)$ is the weighted variance of $x_j$ with weight $W_k$ because $\Theta''\in\mathcal{F}_{0}\implies\sum_{i=1}^nW_{ki}=1$. Because $\Theta''\in\mathcal{F}_{0}$, another constraint is $W_{ki}=0$ if $\delta_{ki}=0$. The weighted variance will be maximized when the two extremist points each have $\frac{1}{2}$ weight:
     \begin{equation}
         \label{eq:lem5.2}
         V_{W_k}(x_j)\leq \frac{\left(\max_{i:\delta_{ki}=1}X_{ij}-\min_{i:\delta_{ki}=1}X_{ij}\right)^2}{4},
     \end{equation}
-    which holds for all $x_j$. Plugging\eqref{eq:lem5.2} into $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{\lambda_0},\Theta'')$ in \eqref{eq:tstar} finishes the proof.
+    which holds for all $x_j$. Plugging\eqref{eq:lem5.2} into $T^*_{\xi,j}(\lambda_1,\lambda_0;\Theta_{0},\Theta'')$ in \eqref{eq:tstar} finishes the proof.
 
 
 
